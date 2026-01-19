@@ -5,7 +5,7 @@ const { login, renovarToken } = require('../controllers/auth.controller');
 const { verificarJWT } = require("../middlewares/validarJWT")
 const { checksValidaciones } = require("../middlewares/checkValidations")
 
-router.post('/auth/login',[
+router.post('/login',[
     check('correo')
         .notEmpty().withMessage("Tienes que escribir un correo").bail()
         .trim()
@@ -18,5 +18,5 @@ router.post('/auth/login',[
     ,checksValidaciones
 ],login);
 
-router.get('/auth/renovar', verificarJWT, renovarToken);
+router.get('/renovar', verificarJWT, renovarToken);
 module.exports = router;

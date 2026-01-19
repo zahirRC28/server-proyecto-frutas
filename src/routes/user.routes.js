@@ -6,7 +6,7 @@ const { verificarJWT } = require('../middlewares/validarJWT');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 const { check } = require('express-validator');
 
-router.post('/user/crear',[
+router.post('/crear',[
     check('nombre')
         .notEmpty().withMessage('El nombre no puede estar vacio')
         .bail()
@@ -26,7 +26,7 @@ router.post('/user/crear',[
     ,verificarRol(['Administrador'])
 ],crearUsuario);
 
-router.put('/user/actualizar/:id',[
+router.put('/actualizar/:id',[
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -52,7 +52,7 @@ router.put('/user/actualizar/:id',[
     ,checksValidaciones
 ],actualizarUsuario);
 
-router.delete('/user/eliminar/:id',[
+router.delete('/eliminar/:id',[
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -69,7 +69,7 @@ router.delete('/user/eliminar/:id',[
     ,checksValidaciones
 ],eliminarUser);
 
-router.get('/user/usuario/:id',[
+router.get('/usuario/:id',[
     verificarJWT,
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -80,7 +80,7 @@ router.get('/user/usuario/:id',[
     ,checksValidaciones
 ], obtenerUser);
 
-router.get('/user/todosUsuarios/:id',[
+router.get('/todosUsuarios/:id',[
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -91,7 +91,7 @@ router.get('/user/todosUsuarios/:id',[
     ,checksValidaciones
 ],obtenerTodosUsers);
 
-router.put('/user/cambiarEstado/:id',[
+router.put('/cambiarEstado/:id',[
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -102,9 +102,9 @@ router.put('/user/cambiarEstado/:id',[
     ,checksValidaciones   
 ],cambiarEstadoUser)
 
-router.get('/user/todosRoles',verificarRol(['Administrador']),todosRoles);
+router.get('/todosRoles',verificarRol(['Administrador']),todosRoles);
 
-router.post('/user/porUserRol',[
+router.post('/porUserRol',[
     verificarRol(['Administrador','Jefe']),
     check('nombre')
         .notEmpty().withMessage('Se necesita el nombre del rol')
