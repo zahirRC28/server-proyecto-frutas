@@ -1,0 +1,45 @@
+const queries = {
+  crearReporte: `
+    INSERT INTO reportes (id_incidencia, es_incidencia, titulo, descripcion, id_productor)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING *;
+  `,
+  obtenerReportesPorProductor: `
+    SELECT * FROM reportes
+    WHERE id_productor = $1
+    ORDER BY fecha_reporte DESC;
+  `,
+  obtenerReportePorId: `
+    SELECT * FROM reportes
+    WHERE id_reporte = $1 AND id_productor = $2;
+  `,
+  actualizarReporte: `
+    UPDATE reportes
+    SET titulo = $1, descripcion = $2
+    WHERE id_reporte = $3 AND id_productor = $4
+    RETURNING *;
+  `,
+  eliminarReporte: `
+    DELETE FROM reportes
+    WHERE id_reporte = $1 AND id_productor = $2
+    RETURNING *;
+  `,
+  insertarMultimedia: `
+    INSERT INTO reporte_multimedia (id_reporte, tipo, filename, mimetype, size, url)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *;
+  `,
+  obtenerMultimediaPorReporte: `
+    SELECT * FROM reporte_multimedia
+    WHERE id_reporte = $1
+    ORDER BY fecha_subida DESC;
+  `,
+  marcarEnviado: `
+    UPDATE reportes
+    SET estado = 'sent', fecha_reporte = CURRENT_TIMESTAMP
+    WHERE id_reporte = $1 AND id_productor = $2
+    RETURNING *;
+  `
+};
+
+module.exports = queries;
