@@ -1,10 +1,12 @@
-const { getCultivoDetalle, getMedicionesPorCultivo } = require('../models/asesor.model');
+const { getCultivoById, getMedicionesByCultivo } = require('../models/asesor.model');
 
 //Muestra toda la info de una parcela y quién es su dueño
-const getCultivoById = async (req, res) => {
+const getCultivoDetalles= async (req, res) => {
     try {
         const { id } = req.params; // Saca ID de la URL
-        const cultivo = await getCultivoDetalle(id);
+        console.log(id)
+        const cultivo = await getCultivoById(id);
+        console.log(cultivo)
 
         if (!cultivo) {
             return res.status(404).json({
@@ -42,7 +44,7 @@ const getMediciones = async (req, res) => {
             });
         }
 
-        const mediciones = await getMedicionesPorCultivo(id_cultivo);
+        const mediciones = await getMedicionesByCultivo(id_cultivo);
 
         // Aquí enviamos el array completo (result.rows)
         return res.status(200).json({
@@ -61,6 +63,6 @@ const getMediciones = async (req, res) => {
 };
 
 module.exports = {
-    getCultivoById,
+     getCultivoDetalles,
     getMediciones
 };

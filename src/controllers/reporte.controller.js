@@ -17,9 +17,23 @@ const crearReporte = async (req, res) => {
 
 const listarReportes = async (req, res) => {
   try {
-    const id_productor = req.userToken.uid;
-    const reports = await reportesModel.obtenerReportesPorProductor(id_productor);
-    return res.json({ ok: true, reports });
+    const { uid, rol } = req.userToken;
+    let reports;
+
+    // Lógica de acceso:
+    if (rol === 'Asesor' || rol === 'Manager') {
+      // Asesores y Managers ven TODOS los reportes de la base de datos
+      reports = await reportesModel.obtenerTodosReportes();
+    } else {
+      // Los Productores solo ven sus propios reportes
+      // Pasamos el uid para que el modelo filtre
+      reports = await reportesModel.obtenerTodosReportes(uid);
+    }
+    return res.status(200).json({
+      ok: true,
+      count: reports.length,
+      reports
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ ok: false, msg: 'Error del servidor' });
@@ -29,13 +43,24 @@ const listarReportes = async (req, res) => {
 const verReporte = async (req, res) => {
   try {
     const id_reporte = req.params.id;
-    const id_productor = req.userToken.uid;
-    const report = await reportesModel.obtenerReportePorId(id_reporte, id_productor);
+    const { uid, rol } = req.userToken;
+    const report = await reportesModel.obtenerReportePorId(id_reporte);
     if (!report) return res.status(404).json({ ok: false, msg: 'Reporte no encontrado' });
-
+    // Si no es Asesor/Manager, verificamos que el id_productor del reporte coincida con el uid del token
+    if (rol === 'Productor' && report.id_productor !== uid) {
+      return res.status(403).json({
+        ok: false,
+        msg: 'No tienes permisos para ver este reporte ajeno'
+      });
+    }
+    // Si pasa la validación, buscamos su multimedia
     const multimedia = await reportesModel.obtenerMultimediaPorReporte(id_reporte);
     report.multimedia = multimedia;
-    return res.json({ ok: true, report });
+    return res.status(200).json({
+            ok: true,
+            report
+        });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ ok: false, msg: 'Error del servidor' });

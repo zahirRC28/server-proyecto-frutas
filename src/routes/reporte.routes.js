@@ -8,12 +8,12 @@ const { checksValidaciones } = require('../middlewares/checkValidations');
 
 
 // CRUD REPORTES
-router.get('/reporte/', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.listarReportes);
+router.get('/reportes', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.listarReportes);
 router.get('/reporte/:id', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.verReporte);
 router.post(
   '/reporte/crear',
   [
-    rolProductor,
+    verificarRol(['Productor']),
     check('titulo').notEmpty().withMessage('Se necesita título'),
     checksValidaciones
   ],

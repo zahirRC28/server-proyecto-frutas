@@ -12,22 +12,30 @@ const crearReporte = async ({ id_incidencia = null, es_incidencia = false, titul
   }
 };
 
-const obtenerReportesPorProductor = async (id_productor) => {
+const obtenerTodosReportes = async (id_productor = null) => {
   let client;
   try {
     client = await connect();
-    const res = await client.query(queries.obtenerReportesPorProductor, [id_productor]);
-    return res.rows;
+    const res = await client.query(queries.obtenerTodosLosReportes);
+    const reportes = res.rows;
+
+    // Si quien consulta es un Productor, filtramos el array para que solo vea los suyos
+    if (id_productor) {
+      return reportes.filter(r => r.id_productor === parseInt(id_productor));
+    }
+    // Si es Asesor o Manager, devolvemos el array completo
+    return reportes;
+  
   } finally {
     if (client) client.release();
   }
 };
 
-const obtenerReportePorId = async (id_reporte, id_productor) => {
+const obtenerReportePorId = async (id_reporte) => {
   let client;
   try {
     client = await connect();
-    const res = await client.query(queries.obtenerReportePorId, [id_reporte, id_productor]);
+    const res = await client.query(queries.verReportePorId, [id_reporte]);
     return res.rows[0];
   } finally {
     if (client) client.release();
@@ -91,7 +99,7 @@ const marcarEnviado = async (id_reporte, id_productor) => {
 
 module.exports = {
   crearReporte,
-  obtenerReportesPorProductor,
+  obtenerTodosReportes,
   obtenerReportePorId,
   actualizarReporte,
   eliminarReporte,

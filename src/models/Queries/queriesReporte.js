@@ -4,14 +4,17 @@ const queries = {
     VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
   `,
-  obtenerReportesPorProductor: `
-    SELECT * FROM reportes
-    WHERE id_productor = $1
-    ORDER BY fecha_reporte DESC;
+  obtenerTodosLosReportes: `
+    SELECT r.*, u.nombre_completo AS nombre_productor
+    FROM reportes r
+    LEFT JOIN usuarios u ON r.id_productor = u.id_usuario
+    ORDER BY r.fecha_reporte DESC;
   `,
-  obtenerReportePorId: `
-    SELECT * FROM reportes
-    WHERE id_reporte = $1 AND id_productor = $2;
+  verReportePorId: `
+    SELECT r.*, u.nombre_completo AS nombre_productor
+    FROM reportes r
+    LEFT JOIN usuarios u ON r.id_productor = u.id_usuario
+    WHERE r.id_reporte = $1;
   `,
   actualizarReporte: `
     UPDATE reportes
