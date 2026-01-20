@@ -1,11 +1,11 @@
 const connect = require('../configs/dbConnect');
 const queries = require("./Queries/queriesUser");
 //usado
-const crearUser = async({nombre, correo, contrasenia, rol}) =>{
+const crearUser = async({nombre, correo, contrasenia, rol, id_manager}) =>{
     let cliente, result;
     try {
         cliente = await connect();
-        result = await cliente.query(queries.crearUsuario,[nombre, correo, contrasenia, rol]);
+        result = await cliente.query(queries.crearUsuario,[nombre, correo, contrasenia, id_manager, rol]);
         return result.rows[0];
     } catch (error) {
         console.log(error);

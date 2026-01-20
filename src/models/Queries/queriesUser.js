@@ -1,36 +1,37 @@
 const queries = {
-    crearUsuario:`
-        INSERT INTO usuarios (nombre_completo, correo, contrasenia_hash, fecha_ingreso, id_rol)
+    crearUsuario: `
+        INSERT INTO usuarios (nombre_completo, correo, contrasenia_hash, id_manager, fecha_ingreso, id_rol)
         SELECT
         $1,
         $2,
         $3,
+        $4,
         CURRENT_DATE,
         r.id_rol
         FROM roles r
-        WHERE r.nombre = $4
+        WHERE r.nombre = $5
         RETURNING *;
     `,
-    actualizarUsuarioById:`
+    actualizarUsuarioById: `
         UPDATE usuarios
         SET nombre_completo = $1, correo = $2, contrasenia_hash = $3, id_rol = (SELECT id_rol FROM roles WHERE nombre = $4)
         WHERE id_usuario = $5
         RETURNING *;
     `,
-    todoLosUserMenosYo:`
+    todoLosUserMenosYo: `
         SELECT u.id_usuario, u.nombre_completo, u.correo, r.nombre AS rol_nombre, u.fecha_ingreso, u.activo, u.fecha_baja
         FROM usuarios u
         INNER JOIN roles r ON u.id_rol = r.id_rol
         WHERE u.id_usuario <> $1;
     `,
-    activarUser:`
+    activarUser: `
         UPDATE usuarios
         SET activo = true,
             fecha_baja = NULL
         WHERE id_usuario = $1
         RETURNING *;
     `,
-    desactivarUser:`
+    desactivarUser: `
         UPDATE usuarios
         SET activo = false,
             fecha_baja = NOW()
@@ -40,37 +41,37 @@ const queries = {
     eliminarUserById_notificaciones: `
         DELETE FROM notificaciones WHERE id_usuario = $1;
     `,
-    eliminarUserByEmail:`
+    eliminarUserByEmail: `
         DELETE 
         FROM usuarios
         WHERE correo = $1
         RETURNING *;
     `,
-    obetenerRoles:`
+    obetenerRoles: `
         SELECT *
         FROM roles
     `,
-    queRol:`
+    queRol: `
         SELECT *
         FROM roles
         WHERE nombre = $1;
     `,
-    queRolID:`
+    queRolID: `
         SELECT *
         FROM roles
         WHERE id_rol = $1;
     `,
-    buscarUser:`
+    buscarUser: `
         SELECT *
         FROM usuarios
         WHERE id_usuario = $1
     `,
-    correoExiste:`
+    correoExiste: `
         SELECT * 
         FROM usuarios 
         WHERE correo = $1
     `
-    ,usuariosPorRolNombre:`
+    , usuariosPorRolNombre: `
         SELECT u.id_usuario, u.nombre_completo, u.correo, r.nombre AS rol_nombre, u.fecha_ingreso, u.activo, u.fecha_baja
         FROM usuarios u
         INNER JOIN roles r ON u.id_rol = r.id_rol

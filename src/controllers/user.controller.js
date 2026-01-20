@@ -5,7 +5,7 @@ const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid,
 } = require('../models/user.model');
 
 const crearUsuario = async(req, res) =>{
-    const {nombre, correo, contrasenia, rol} = req.body
+    const {nombre, correo, contrasenia, rol, id_manager} = req.body
         //console.log(nombre);
         //console.log(correo);
         //console.log(contrasenia);
@@ -37,9 +37,10 @@ const crearUsuario = async(req, res) =>{
             nombre,
             correo,
             contrasenia:contraseniaEncrip,
-            rol
+            rol,
+            id_manager
         }
-        //console.log(values);
+        console.log(values);
         const data = await crearUser(values);
         //console.log(data);
 

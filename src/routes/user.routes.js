@@ -6,27 +6,33 @@ const { verificarJWT } = require('../middlewares/validarJWT');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 const { check } = require('express-validator');
 
-router.post('/crear',[
+router.post('/crear', [
     check('nombre')
         .notEmpty().withMessage('El nombre no puede estar vacio')
         .bail()
         .trim()
         .isLength({ min: 2 }).withMessage('El nombre es demasiado corto')
         .bail()
-    ,check('correo')
+    , check('correo')
         .notEmpty().withMessage("Tienes que escribir un correo").bail()
         .trim()
         .normalizeEmail()
         .isEmail().withMessage("Escriba un correo electrónico válido.").bail()
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
-    ,check('contrasenia')
+    , check('contrasenia')
         .notEmpty().withMessage("Tienes que escribir una contraseña").bail()
         .isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
-    ,checksValidaciones
-    ,verificarRol(['Administrador'])
-],crearUsuario);
+    , check('id_manager')
+        .optional({ checkFalsy: true })
+        .bail()
+        .trim()
+        .isInt().withMessage('El id de manager tiene que ser un numero entero')
+        .bail()
+    , checksValidaciones
+    //,verificarRol(['Administrador'])
+], crearUsuario);
 
-router.put('/actualizar/:id',[
+router.put('/actualizar/:id', [
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -34,25 +40,25 @@ router.put('/actualizar/:id',[
         .trim()
         .isInt().withMessage('El id de usuario tiene que ser un numero entero')
         .bail()
-    ,check('nombre')
+    , check('nombre')
         .notEmpty().withMessage('El nombre no puede estar vacio')
         .bail()
         .trim()
         .isLength({ min: 2 }).withMessage('El nombre es demasiado corto')
         .bail()
-    ,check('correo')
+    , check('correo')
         .notEmpty().withMessage("Tienes que escribir un correo").bail()
         .trim()
         .normalizeEmail()
         .isEmail().withMessage("Escriba un correo electrónico válido.").bail()
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
-    ,check('contrasenia')
+    , check('contrasenia')
         .optional({ checkFalsy: true })
         .isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
-    ,checksValidaciones
-],actualizarUsuario);
+    , checksValidaciones
+], actualizarUsuario);
 
-router.delete('/eliminar/:id',[
+router.delete('/eliminar/:id', [
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -60,16 +66,16 @@ router.delete('/eliminar/:id',[
         .trim()
         .isInt().withMessage('El id de usuario tiene que ser un numero entero')
         .bail()
-    ,check('correo')
+    , check('correo')
         .notEmpty().withMessage("Tienes que escribir un correo").bail()
         .trim()
         .normalizeEmail()
         .isEmail().withMessage("Escriba un correo electrónico válido.").bail()
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
-    ,checksValidaciones
-],eliminarUser);
+    , checksValidaciones
+], eliminarUser);
 
-router.get('/usuario/:id',[
+router.get('/usuario/:id', [
     verificarJWT,
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -77,10 +83,10 @@ router.get('/usuario/:id',[
         .trim()
         .isInt().withMessage('El id de usuario tiene que ser un numero entero')
         .bail()
-    ,checksValidaciones
+    , checksValidaciones
 ], obtenerUser);
 
-router.get('/todosUsuarios/:id',[
+router.get('/todosUsuarios/:id', [
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -88,10 +94,10 @@ router.get('/todosUsuarios/:id',[
         .trim()
         .isInt().withMessage('El id de usuario tiene que ser un numero entero')
         .bail()
-    ,checksValidaciones
-],obtenerTodosUsers);
+    , checksValidaciones
+], obtenerTodosUsers);
 
-router.put('/cambiarEstado/:id',[
+router.put('/cambiarEstado/:id', [
     verificarRol(['Administrador']),
     check('id')
         .notEmpty().withMessage('Se necesita el Id de usuario')
@@ -99,18 +105,18 @@ router.put('/cambiarEstado/:id',[
         .trim()
         .isInt().withMessage('El id de usuario tiene que ser un numero entero')
         .bail()
-    ,checksValidaciones   
-],cambiarEstadoUser)
+    , checksValidaciones
+], cambiarEstadoUser)
 
-router.get('/todosRoles',verificarRol(['Administrador']),todosRoles);
+router.get('/todosRoles', verificarRol(['Administrador']), todosRoles);
 
-router.post('/porUserRol',[
-    verificarRol(['Administrador','Jefe']),
+router.post('/porUserRol', [
+    verificarRol(['Administrador', 'Jefe']),
     check('nombre')
         .notEmpty().withMessage('Se necesita el nombre del rol')
         .bail()
         .trim()
-    ,checksValidaciones
+    , checksValidaciones
 ], usuariosPorRol);
 
 module.exports = router;
