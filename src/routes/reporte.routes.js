@@ -2,15 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { verificarRol } = require('../middlewares/verificarRol');
 const reportesController = require('../controllers/reporte.controller');
-const upload = require('../middlewares/uploadVideos'); 
+const upload = require('../middlewares/uploadVideos');
 const { check } = require('express-validator');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 
-const rolProductor = verificarRol(['Productor']);
 
 // CRUD REPORTES
-router.get('/reporte/', rolProductor, reportesController.listarReportes);
-router.get('/reporte/:id', rolProductor, reportesController.verReporte);
+router.get('/reporte/', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.listarReportes);
+router.get('/reporte/:id', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.verReporte);
 router.post(
   '/reporte/crear',
   [
@@ -20,13 +19,13 @@ router.post(
   ],
   reportesController.crearReporte
 );
-router.put('/reporte/editar/:id', rolProductor, reportesController.editarReporte);
-router.delete('/reporte/eliminar/:id', rolProductor, reportesController.eliminarReporte);
+router.put('/reporte/editar/:id', verificarRol(['Productor']), reportesController.editarReporte);
+router.delete('/reporte/eliminar/:id', verificarRol(['Productor']), reportesController.eliminarReporte);
 
 // Adjuntar multimedia (form-data field 'files' o 'multimedia') - acepta multiples
-router.post('/reporte/:id/multimedia', rolProductor, upload.array('files', 5), reportesController.uploadMultimedia);
+router.post('/reporte/:id/multimedia', verificarRol(['Productor']), upload.array('files', 5), reportesController.uploadMultimedia);
 
 // Enviar reporte
-router.post('/reporte/:id/enviar', rolProductor, reportesController.enviarReporte);
+router.post('/reporte/:id/enviar', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.enviarReporte);
 
 module.exports = router;
