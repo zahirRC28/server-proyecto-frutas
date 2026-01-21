@@ -25,7 +25,7 @@ const queries = {
   `,
   obtenerCultivoPorId: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
-           ST_AsGeoJSON(poligono) AS poligono_geojson, created_at
+           ST_AsGeoJSON(poligono) AS poligono_geojson, id_productor, created_at
     FROM cultivos
     WHERE id_cultivo = $1;
   `,

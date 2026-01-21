@@ -1,28 +1,86 @@
 const express = require('express');
 const router = express.Router();
 const { verificarRol } = require('../middlewares/verificarRol');
-const {crearUnReporte, editarReporte, eliminarUnReporte, enviarReporte, listarReportes,verReporte} = require('../controllers/reporte.controller');
-const { check } = require('express-validator');
+const { check, body } = require('express-validator');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 
+const {
+  crearUnReporte,
+  listarReportes,
+  verReporte,
+  editarReporte,
+  eliminarUnReporte,
+  enviarReporte
+} = require('../controllers/reporte.controller');
 
-// CRUD REPORTES
-router.get('/', verificarRol(['Productor', 'Manager', 'Asesor']), listarReportes);
-router.get('/:id', verificarRol(['Productor', 'Manager', 'Asesor']), verReporte);
-
-router.post( '/crear',
+router.post(
+  '/crear',
   [
     verificarRol(['Productor']),
-    check('titulo').notEmpty().withMessage('Se necesita título'),
+    check('titulo')
+      .notEmpty().withMessage('Se necesita título')
+      .isLength({ max: 150 }).withMessage('El título no puede exceder 150 caracteres'),
+    check('id_cultivo')
+      .notEmpty().withMessage('Se necesita id_cultivo')
+      .isInt().withMessage('id_cultivo debe ser un número entero'),
+    body('descripcion')
+      .optional()
+      .isLength({ max: 5000 }).withMessage('La descripción no puede exceder 5000 caracteres'),
     checksValidaciones
   ],
   crearUnReporte
 );
 
-router.put('/editar/:id', verificarRol(['Productor']), editarReporte);
-router.delete('/eliminar/:id', verificarRol(['Productor']), eliminarUnReporte);
+router.get(
+  '/',
+  verificarRol(['Productor', 'Manager', 'Asesor']),
+  listarReportes
+);
 
-// Enviar reporte
-router.post('/:id/enviar', verificarRol(['Productor', 'Manager', 'Asesor']), enviarReporte);
+router.get(
+  '/:id',
+  verificarRol(['Productor', 'Manager', 'Asesor']),
+  [
+    check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
+    checksValidaciones
+  ],
+  verReporte
+);
+
+router.put(
+  '/editar/:id',
+  verificarRol(['Productor']),
+  [
+    check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
+    check('titulo')
+      .notEmpty().withMessage('Se necesita título')
+      .isLength({ max: 150 }).withMessage('El título no puede exceder 150 caracteres'),
+    body('descripcion')
+      .optional()
+      .isLength({ max: 5000 }).withMessage('La descripción no puede exceder 5000 caracteres'),
+    checksValidaciones
+  ],
+  editarReporte
+);
+
+router.delete(
+  '/eliminar/:id',
+  verificarRol(['Productor']),
+  [
+    check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
+    checksValidaciones
+  ],
+  eliminarUnReporte
+);
+
+router.post(
+  '/:id/enviar',
+  verificarRol(['Productor', 'Manager', 'Asesor']),
+  [
+    check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
+    checksValidaciones
+  ],
+  enviarReporte
+);
 
 module.exports = router;
