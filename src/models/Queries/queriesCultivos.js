@@ -24,10 +24,21 @@ const queries = {
     WHERE id_cultivo = $1;
   `,
   actualizarCultivo: `
-    UPDATE cultivos
-    SET nombre = $1, zona_cultivo = $2, tipo_cultivo = $3, region = $4, pais = $5, sistema_riego = $6,
-        poligono = CASE WHEN $7 IS NOT NULL THEN ST_SetSRID(ST_GeomFromGeoJSON($7::text), 4326) ELSE poligono END
-    WHERE id_cultivo = $8 AND id_productor = $9
+        UPDATE cultivos
+    SET
+        nombre         = COALESCE($1, nombre),
+        zona_cultivo   = COALESCE($2, zona_cultivo),
+        tipo_cultivo   = COALESCE($3, tipo_cultivo),
+        region         = COALESCE($4, region),
+        pais           = COALESCE($5, pais),
+        sistema_riego  = COALESCE($6, sistema_riego),
+        poligono       = CASE
+            WHEN $7::text IS NOT NULL
+            THEN ST_SetSRID(ST_GeomFromGeoJSON($7::text), 4326)
+            ELSE poligono
+        END
+    WHERE id_cultivo = $8
+      AND id_productor = $9
     RETURNING *;
   `,
   eliminarCultivo: `
