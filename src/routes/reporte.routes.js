@@ -13,7 +13,7 @@ router.get('/reporte/:id', verificarRol(['Productor', 'Manager', 'Asesor']), rep
 router.post(
   '/reporte/crear',
   [
-    rolProductor,
+    verificarRol(['Productor']),
     check('titulo').notEmpty().withMessage('Se necesita título'),
     checksValidaciones
   ],
