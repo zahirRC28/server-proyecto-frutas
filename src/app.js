@@ -43,6 +43,7 @@ app.use('/api/v1/auth', require('./routes/auth.routes'));
 app.use('/api/v1/user', require('./routes/user.routes'));
 app.use('/api/v1/reporte', require('./routes/reporte.routes'));
 app.use('/api/v1/cultivo', require('./routes/cultivos.routes'));
+app.use('/api/v1/incidencia', require('./routes/incidencias.routes'));
 
 //LISTENERS
 app.listen(port, ()=>{
