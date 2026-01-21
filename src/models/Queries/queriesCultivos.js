@@ -16,7 +16,13 @@ const queries = {
     FROM cultivos
     ORDER BY created_at DESC;
   `,
-
+  obtenerCultivosProductor:`
+    SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
+           ST_AsGeoJSON(poligono) AS poligono_geojson, created_at
+    FROM cultivos
+    WHERE id_productor = $1
+    ORDER BY created_at DESC;
+  `,
   obtenerCultivoPorId: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
            ST_AsGeoJSON(poligono) AS poligono_geojson, created_at

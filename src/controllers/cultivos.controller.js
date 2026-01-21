@@ -1,20 +1,9 @@
-const { obtenerCultivos, crearCultivo, obtenerCultivoPorId, actualizarCultivo, eliminarCultivo} = require('../models/cultivos.model');
+const { obtenerCultivos, crearCultivo, obtenerCultivoPorId, actualizarCultivo, eliminarCultivo, obtenerCultivosProductor} = require('../models/cultivos.model');
 //Crear Cultivo
 const crearUnCultivo = async (req, res) => {
   try {
     const id_productor = req.userToken.uid;
     const { nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligono } = req.body;
-
-    if (!nombre) return res.status(400).json({ 
-        ok: false, 
-        msg: 'El nombre es obligatorio' 
-
-    });
-    if (!pais) return res.status(400).json({ 
-        ok: false, 
-        msg: 'pais es obligatorio (codigo 2 letras)' 
-
-    });
 
     // poligono puede ser objeto o string JSON
     let polObj = null;
@@ -44,6 +33,23 @@ const crearUnCultivo = async (req, res) => {
 const listarCultivos = async (req, res) => {
   try {
     const list = await obtenerCultivos();
+    return res.json({ 
+        ok: true, 
+        cultivos: list 
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ 
+        ok: false, 
+        msg: 'Error del servidor' 
+
+    });
+  }
+};
+const listarCultivosPorProductor = async (req, res) => {
+  try {
+    const id_productor = req.params.id;
+    const list = await obtenerCultivosProductor(id_productor);
     return res.json({ 
         ok: true, 
         cultivos: list 
@@ -133,6 +139,7 @@ const eliminarUnCultivo = async (req, res) => {
 module.exports = {
   crearUnCultivo,
   listarCultivos,
+  listarCultivosPorProductor,
   verCultivoID,
   editarCultivo,
   eliminarUnCultivo

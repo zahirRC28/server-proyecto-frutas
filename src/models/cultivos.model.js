@@ -34,6 +34,16 @@ const obtenerCultivos = async () => {
     if (client) client.release();
   }
 };
+const obtenerCultivosProductor = async (id_productor) => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.obtenerCultivosProductor, [id_productor]);
+    return res.rows.map(parseGeom);
+  } finally {
+    if (client) client.release();
+  }
+};
 
 const obtenerCultivoPorId = async (id_cultivo) => {
   let client;
@@ -77,6 +87,7 @@ const eliminarCultivo = async (id_cultivo, id_productor) => {
 module.exports = {
   crearCultivo,
   obtenerCultivos,
+  obtenerCultivosProductor,
   obtenerCultivoPorId,
   actualizarCultivo,
   eliminarCultivo
