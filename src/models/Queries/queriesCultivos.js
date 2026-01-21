@@ -10,18 +10,18 @@ const queries = {
     )
     RETURNING *;
   `,
-  obtenerCultivosPorProductor: `
+  obtenerCultivos: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
            ST_AsGeoJSON(poligono) AS poligono_geojson, created_at
     FROM cultivos
-    WHERE id_productor = $1
     ORDER BY created_at DESC;
   `,
+
   obtenerCultivoPorId: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
            ST_AsGeoJSON(poligono) AS poligono_geojson, created_at
     FROM cultivos
-    WHERE id_cultivo = $1 AND id_productor = $2;
+    WHERE id_cultivo = $1;
   `,
   actualizarCultivo: `
     UPDATE cultivos

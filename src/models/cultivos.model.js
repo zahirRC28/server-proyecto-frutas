@@ -24,33 +24,35 @@ const crearCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, 
   }
 };
 
-const obtenerCultivosPorProductor = async (id_productor) => {
+const obtenerCultivos = async () => {
   let client;
   try {
     client = await connect();
-    const res = await client.query(queries.obtenerCultivosPorProductor, [id_productor]);
+    const res = await client.query(queries.obtenerCultivos, []);
     return res.rows.map(parseGeom);
   } finally {
     if (client) client.release();
   }
 };
 
-const obtenerCultivoPorId = async (id_cultivo, id_productor) => {
+const obtenerCultivoPorId = async (id_cultivo) => {
   let client;
   try {
     client = await connect();
-    const res = await client.query(queries.obtenerCultivoPorId, [id_cultivo, id_productor]);
+    const res = await client.query(queries.obtenerCultivoPorId, [id_cultivo]);
     return parseGeom(res.rows[0]);
   } finally {
     if (client) client.release();
   }
 };
 
+
 const actualizarCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON }, id_cultivo, id_productor) => {
   let client;
   try {
     client = await connect();
     const pol = poligonoGeoJSON ? JSON.stringify(poligonoGeoJSON) : null;
+    console.log(pol)
     const res = await client.query(queries.actualizarCultivo, [
       nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
       pol, id_cultivo, id_productor
@@ -74,7 +76,7 @@ const eliminarCultivo = async (id_cultivo, id_productor) => {
 
 module.exports = {
   crearCultivo,
-  obtenerCultivosPorProductor,
+  obtenerCultivos,
   obtenerCultivoPorId,
   actualizarCultivo,
   eliminarCultivo

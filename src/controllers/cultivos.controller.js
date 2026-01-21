@@ -1,6 +1,6 @@
-const cultivoModel = require('../models/cultivos.model');
-
-const crearCultivo = async (req, res) => {
+const { obtenerCultivos, crearCultivo, obtenerCultivoPorId, actualizarCultivo, eliminarCultivo} = require('../models/cultivos.model');
+//Crear Cultivo
+const crearUnCultivo = async (req, res) => {
   try {
     const id_productor = req.userToken.uid;
     const { nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligono } = req.body;
@@ -21,8 +21,7 @@ const crearCultivo = async (req, res) => {
     if (poligono) {
       polObj = typeof poligono === 'string' ? JSON.parse(poligono) : poligono;
     }
-
-    const created = await cultivoModel.crearCultivo({
+    const created = await crearCultivo({
       nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
       poligonoGeoJSON: polObj, id_productor
     });
@@ -41,15 +40,13 @@ const crearCultivo = async (req, res) => {
     });
   }
 };
-
+//Obtener todos los cultivos
 const listarCultivos = async (req, res) => {
   try {
-    const id_productor = req.userToken.uid;
-    const list = await cultivoModel.obtenerCultivosPorProductor(id_productor);
+    const list = await obtenerCultivos();
     return res.json({ 
         ok: true, 
         cultivos: list 
-
     });
   } catch (err) {
     console.error(err);
@@ -61,11 +58,12 @@ const listarCultivos = async (req, res) => {
   }
 };
 
-const verCultivo = async (req, res) => {
+
+
+const verCultivoID = async (req, res) => {
   try {
     const id = req.params.id;
-    const id_productor = req.userToken.uid;
-    const c = await cultivoModel.obtenerCultivoPorId(id, id_productor);
+    const c = await obtenerCultivoPorId(id);
     if (!c) return res.status(404).json({ 
         ok: false, 
         msg: 'Cultivo no encontrado' 
@@ -90,7 +88,7 @@ const editarCultivo = async (req, res) => {
 
     const polObj = poligono ? (typeof poligono === 'string' ? JSON.parse(poligono) : poligono) : null;
 
-    const updated = await cultivoModel.actualizarCultivo({
+    const updated = await actualizarCultivo({
       nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
       poligonoGeoJSON: polObj
     }, id, id_productor);
@@ -111,11 +109,11 @@ const editarCultivo = async (req, res) => {
   }
 };
 
-const eliminarCultivo = async (req, res) => {
+const eliminarUnCultivo = async (req, res) => {
   try {
     const id = req.params.id;
     const id_productor = req.userToken.uid;
-    const del = await cultivoModel.eliminarCultivo(id, id_productor);
+    const del = await eliminarCultivo(id, id_productor);
     if (!del) return res.status(404).json({ 
         ok: false, 
         msg: 'No encontrado o sin permisos' 
@@ -133,9 +131,9 @@ const eliminarCultivo = async (req, res) => {
 };
 
 module.exports = {
-  crearCultivo,
+  crearUnCultivo,
   listarCultivos,
-  verCultivo,
+  verCultivoID,
   editarCultivo,
-  eliminarCultivo
+  eliminarUnCultivo
 };

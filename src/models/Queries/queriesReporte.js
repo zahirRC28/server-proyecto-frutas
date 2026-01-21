@@ -27,16 +27,6 @@ const queries = {
     WHERE id_reporte = $1 AND id_productor = $2
     RETURNING *;
   `,
-  insertarMultimedia: `
-    INSERT INTO reporte_multimedia (id_reporte, tipo, filename, mimetype, size, url)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING *;
-  `,
-  obtenerMultimediaPorReporte: `
-    SELECT * FROM reporte_multimedia
-    WHERE id_reporte = $1
-    ORDER BY fecha_subida DESC;
-  `,
   marcarEnviado: `
     UPDATE reportes
     SET estado = 'sent', fecha_reporte = CURRENT_TIMESTAMP

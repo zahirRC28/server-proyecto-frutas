@@ -1,31 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const { verificarRol } = require('../middlewares/verificarRol');
-const reportesController = require('../controllers/reporte.controller');
-const upload = require('../middlewares/uploadVideos');
+const {crearUnReporte, editarReporte, eliminarUnReporte, enviarReporte, listarReportes,verReporte} = require('../controllers/reporte.controller');
 const { check } = require('express-validator');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 
 
 // CRUD REPORTES
-router.get('/reportes', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.listarReportes);
-router.get('/reporte/:id', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.verReporte);
-router.post(
-  '/reporte/crear',
+router.get('/', verificarRol(['Productor', 'Manager', 'Asesor']), listarReportes);
+router.get('/:id', verificarRol(['Productor', 'Manager', 'Asesor']), verReporte);
+
+router.post( '/crear',
   [
     verificarRol(['Productor']),
     check('titulo').notEmpty().withMessage('Se necesita título'),
     checksValidaciones
   ],
-  reportesController.crearReporte
+  crearUnReporte
 );
-router.put('/reporte/editar/:id', verificarRol(['Productor']), reportesController.editarReporte);
-router.delete('/reporte/eliminar/:id', verificarRol(['Productor']), reportesController.eliminarReporte);
 
-// Adjuntar multimedia (form-data field 'files' o 'multimedia') - acepta multiples
-router.post('/reporte/:id/multimedia', verificarRol(['Productor']), upload.array('files', 5), reportesController.uploadMultimedia);
+router.put('/editar/:id', verificarRol(['Productor']), editarReporte);
+router.delete('/eliminar/:id', verificarRol(['Productor']), eliminarUnReporte);
 
 // Enviar reporte
-router.post('/reporte/:id/enviar', verificarRol(['Productor', 'Manager', 'Asesor']), reportesController.enviarReporte);
+router.post('/:id/enviar', verificarRol(['Productor', 'Manager', 'Asesor']), enviarReporte);
 
 module.exports = router;

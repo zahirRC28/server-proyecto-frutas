@@ -64,28 +64,6 @@ const eliminarReporte = async (id_reporte, id_productor) => {
   }
 };
 
-const insertarMultimedia = async (id_reporte, tipo, filename, mimetype, size, url) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.insertarMultimedia, [id_reporte, tipo, filename, mimetype, size, url]);
-    return res.rows[0];
-  } finally {
-    if (client) client.release();
-  }
-};
-
-const obtenerMultimediaPorReporte = async (id_reporte) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.obtenerMultimediaPorReporte, [id_reporte]);
-    return res.rows;
-  } finally {
-    if (client) client.release();
-  }
-};
-
 const marcarEnviado = async (id_reporte, id_productor) => {
   let client;
   try {
@@ -103,7 +81,5 @@ module.exports = {
   obtenerReportePorId,
   actualizarReporte,
   eliminarReporte,
-  insertarMultimedia,
-  obtenerMultimediaPorReporte,
   marcarEnviado
 };

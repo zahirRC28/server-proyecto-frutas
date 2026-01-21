@@ -1,26 +1,33 @@
 const express = require('express');
 const router = express.Router();
 const { verificarRol } = require('../middlewares/verificarRol');
-const cultivoController = require('../controllers/cultivos.controller');
+const { crearUnCultivo, editarCultivo, eliminarUnCultivo, listarCultivos, verCultivoID } = require('../controllers/cultivos.controller');
 const { check } = require('express-validator');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 
+//Ver cultivos-funciona
+router.get('/', verificarRol(['Administrador', 'Manager', 'Asesor']), listarCultivos);
 
-router.get('/cultivos', verificarRol(['Productor']), cultivoController.listarCultivos);
-router.get('/cultivos/:id', verificarRol(['Productor']), cultivoController.verCultivo);
+//ver cultivos-funciona
+router.get('/:id', verificarRol(['Productor','Administrador', 'Manager', 'Asesor']), verCultivoID);
 
+//Crear Cultivo -Funciona
 router.post(
-  '/cultivos/crear',
+  '/crear',
   [
     verificarRol(['Productor']),
     check('nombre').notEmpty().withMessage('Nombre es obligatorio'),
     check('pais').notEmpty().withMessage('Pais obligatorio (ES)').bail().isLength({ min:2, max:2 }).withMessage('Codigo pais 2 letras'),
     checksValidaciones
   ],
-  cultivoController.crearCultivo
+  crearUnCultivo
 );
 
-router.put('/cultivos/editar/:id', verificarRol(['Productor']), cultivoController.editarCultivo);
-router.delete('/cultivos/eliminar/:id', verificarRol(['Productor']), cultivoController.eliminarCultivo);
+//Actualizar Cultivo
+router.put('/editar/:id', verificarRol(['Productor']), editarCultivo);
+
+
+//EliminarCultivo-fUNCIONA
+router.delete('/eliminar/:id', verificarRol(['Productor']), eliminarUnCultivo);
 
 module.exports = router;

@@ -10,7 +10,7 @@ const path = require('path');
 
 //CONFIGURACION CORS
 const frontUrlDes = '';
-const localURL = ''
+const localURL = 'http://localhost:5173'
 const whitelist = [frontUrlDes, localURL];
 
 const corsOptions = {
@@ -41,9 +41,8 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 //ROUTES
 app.use('/api/v1/auth', require('./routes/auth.routes'));
 app.use('/api/v1/user', require('./routes/user.routes'));
-app.use('/api/v1/manager', require('./routes/manager.routes'))
-app.use('/api/v1/asesor', require('./routes/asesor.routes'))
-app.use('/api/v1', require('./routes/reporte.routes'));
+app.use('/api/v1/reporte', require('./routes/reporte.routes'));
+app.use('/api/v1/cultivo', require('./routes/cultivos.routes'));
 
 //LISTENERS
 app.listen(port, ()=>{
