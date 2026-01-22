@@ -41,18 +41,10 @@ const eliminarReporte = async (id_reporte, id_productor) => {
   return res.rows[0];
 };
 
-const marcarEnviado = async (id_reporte, id_productor) => {
-  const client = await connect();
-  const res = await client.query(queries.marcarEnviado, [id_reporte, id_productor]);
-  client.release();
-  return res.rows[0];
-};
-
 module.exports = {
   crearReporte,
   obtenerTodosReportes,
   obtenerReportePorId,
   actualizarReporte,
-  eliminarReporte,
-  marcarEnviado
+  eliminarReporte
 };

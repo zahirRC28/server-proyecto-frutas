@@ -64,21 +64,11 @@ const eliminarUnReporte = async (req, res) => {
   res.json({ ok: true, msg: 'Reporte eliminado' });
 };
 
-const enviarReporte = async (req, res) => {
-  const id_reporte = req.params.id;
-  const id_productor = req.userToken.uid;
-
-  const updated = await marcarEnviado(id_reporte, id_productor);
-  if (!updated) return res.status(404).json({ ok: false, msg: 'Reporte no encontrado' });
-
-  res.json({ ok: true, msg: 'Reporte enviado', report: updated });
-};
 
 module.exports = {
   crearUnReporte,
   listarReportes,
   verReporte,
   editarReporte,
-  eliminarUnReporte,
-  enviarReporte
+  eliminarUnReporte
 };

@@ -9,8 +9,7 @@ const {
   listarReportes,
   verReporte,
   editarReporte,
-  eliminarUnReporte,
-  enviarReporte
+  eliminarUnReporte
 } = require('../controllers/reporte.controller');
 
 router.post(
@@ -33,13 +32,13 @@ router.post(
 
 router.get(
   '/',
-  verificarRol(['Productor', 'Manager', 'Asesor']),
+  verificarRol(['Productor', 'Manager', 'Asesor','Administrador']),
   listarReportes
 );
 
 router.get(
   '/:id',
-  verificarRol(['Productor', 'Manager', 'Asesor']),
+  verificarRol(['Productor', 'Manager', 'Asesor','Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     checksValidaciones
@@ -49,7 +48,7 @@ router.get(
 
 router.put(
   '/editar/:id',
-  verificarRol(['Productor']),
+  verificarRol(['Productor','Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     check('titulo')
@@ -65,7 +64,7 @@ router.put(
 
 router.delete(
   '/eliminar/:id',
-  verificarRol(['Productor']),
+  verificarRol(['Productor','Administrador','Manager']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     checksValidaciones
@@ -73,14 +72,5 @@ router.delete(
   eliminarUnReporte
 );
 
-router.post(
-  '/:id/enviar',
-  verificarRol(['Productor', 'Manager', 'Asesor']),
-  [
-    check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
-    checksValidaciones
-  ],
-  enviarReporte
-);
 
 module.exports = router;
