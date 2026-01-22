@@ -9,7 +9,7 @@ const port = process.env.PORT || 3005;
 const path = require('path');
 
 //CONFIGURACION CORS
-const frontUrlDes = '';
+const frontUrlDes = 'https://frontfrutas.vercel.app';
 const localURL = 'http://localhost:5173'
 const whitelist = [frontUrlDes, localURL];
 
