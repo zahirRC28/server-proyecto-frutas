@@ -1,4 +1,4 @@
-const crearUnaNotificacion = require('../models/notificacion.model');
+const {crearUnaNotificacion, obtenerPorCreador, obtenerPorReceptor, obtenerTodas} = require('../models/notificacion.model');
 
 const crearNotificacion = async (req, res) => {
   try {
@@ -43,4 +43,77 @@ const crearNotificacion = async (req, res) => {
   }
 };
 
-module.exports = { crearNotificacion };
+const obtenerNotificacionesPorCreador = async (req, res) => {
+  try {
+    // Si se pasa :id en la ruta, se usa; si no, se usa el id del usuario autenticado
+    const idParam = req.params.id;
+    console.log(idParam, "a ui")
+    const id_creador = idParam || (req.userToken && req.userToken.uid);
+
+    if (!id_creador) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'Falta id del creador (ruta o usuario autenticado)'
+      });
+    }
+
+    const notifications = await obtenerPorCreador(id_creador);
+
+    return res.status(200).json({
+      ok: true,
+      notifications
+    });
+  } catch (error) {
+    console.error('Error en obtenerNotificacionesPorCreador:', error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Error del servidor'
+    });
+  }
+};
+
+const obtenerNotificacionesPorReceptor = async (req, res) => {
+  try {
+    const idParam = req.params.id;
+    const id_receptor = idParam || (req.userToken && req.userToken.uid);
+
+    if (!id_receptor) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'Falta id del receptor (ruta o usuario autenticado)'
+      });
+    }
+
+    const notifications = await obtenerPorReceptor(id_receptor);
+
+    return res.status(200).json({
+      ok: true,
+      notifications
+    });
+  } catch (error) {
+    console.error('Error en obtenerNotificacionesPorReceptor:', error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Error del servidor'
+    });
+  }
+};
+
+const obtenerNotificacionesTodas = async (req, res) => {
+  try {
+    const notifications = await obtenerTodas();
+    return res.status(200).json({
+      ok: true,
+      notifications
+    });
+  } catch (error) {
+    console.error('Error en obtenerNotificacionesTodas:', error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Error del servidor'
+    });
+  }
+};
+
+
+module.exports = { crearNotificacion, obtenerNotificacionesPorCreador, obtenerNotificacionesPorReceptor, obtenerNotificacionesTodas };
