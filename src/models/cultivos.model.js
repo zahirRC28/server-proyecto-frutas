@@ -1,6 +1,12 @@
 const connect = require('../configs/dbConnect');
 const queries = require('./Queries/queriesCultivos');
 
+/**
+ * Función auxiliar para transformar strings GeoJSON de la BD en objetos JSON nativos.
+ * @function parseGeom
+ * @param {Object} row - Fila obtenida de la base de datos.
+ * @returns {Object} Fila con la propiedad 'poligono' parseada y limpieza de campos temporales.
+ */
 function parseGeom(row) {
   if (!row) return row;
   if (row.poligono_geojson) {
@@ -10,6 +16,13 @@ function parseGeom(row) {
   return row;
 }
 
+/**
+ * Registra un nuevo cultivo con su delimitación geográfica.
+ * @async
+ * @param {Object} datos - Atributos del cultivo e id_productor.
+ * @param {Object} datos.poligonoGeoJSON - Objeto GeoJSON que representa el área del cultivo.
+ * @returns {Promise<Object>} Registro del cultivo creado y procesado.
+ */
 const crearCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON, id_productor }) => {
   let client;
   try {
@@ -24,6 +37,11 @@ const crearCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, 
   }
 };
 
+/**
+ * Recupera el listado global de cultivos.
+ * @async
+ * @returns {Promise<Array<Object>>} Lista de cultivos con sus geometrías parseadas.
+ */
 const obtenerCultivos = async () => {
   let client;
   try {
@@ -34,6 +52,12 @@ const obtenerCultivos = async () => {
     if (client) client.release();
   }
 };
+
+/**
+ * Recupera todos los cultivos pertenecientes a un productor específico.
+ * @async
+ * @param {number|string} id_productor - ID del propietario de los cultivos.
+ */
 const obtenerCultivosProductor = async (id_productor) => {
   let client;
   try {
@@ -45,6 +69,11 @@ const obtenerCultivosProductor = async (id_productor) => {
   }
 };
 
+/**
+ * Obtiene la información detallada de un cultivo por su ID.
+ * @async
+ * @param {number|string} id_cultivo - ID único del cultivo.
+ */
 const obtenerCultivoPorId = async (id_cultivo) => {
   let client;
   try {
@@ -56,7 +85,10 @@ const obtenerCultivoPorId = async (id_cultivo) => {
   }
 };
 
-
+/**
+ * Actualiza los datos de un cultivo existente, validando la propiedad del productor.
+ * @async
+ */
 const actualizarCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON }, id_cultivo, id_productor) => {
   let client;
   try {
@@ -73,6 +105,12 @@ const actualizarCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, p
   }
 };
 
+/**
+ * Elimina un cultivo de la base de datos.
+ * @async
+ * @param {number} id_cultivo - ID del cultivo a borrar.
+ * @param {number} id_productor - ID del productor (para asegurar permisos de borrado).
+ */
 const eliminarCultivo = async (id_cultivo, id_productor) => {
   let client;
   try {

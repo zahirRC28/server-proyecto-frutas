@@ -2,6 +2,17 @@ const { JWTgenerator } = require('../helpers/jwt');
 const bycrypt = require('bcryptjs');
 const { buscarUserLogin, renovarUserID } = require('../models/auth.model')
 
+/**
+ * Autentica un usuario y genera un token JWT.
+ * * @async
+ * @function login
+ * @param {Object} req - Objeto de petición de Express.
+ * @param {Object} req.body - Cuerpo de la petición.
+ * @param {string} req.body.correo - Correo electrónico del usuario.
+ * @param {string} req.body.contrasenia - Contraseña en texto plano.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con el estado de la autenticación, datos del usuario y el token.
+ */
 const login = async(req, res) =>{
     const {correo, contrasenia} = req.body
     try {
@@ -62,6 +73,16 @@ const login = async(req, res) =>{
     }
 };
 
+/**
+ * Genera un nuevo token JWT válido basado en un token existente y válido.
+ * Generalmente utilizado para extender la sesión del usuario.
+ * * @async
+ * @function renovarToken
+ * @param {Object} req - Objeto de petición de Express.
+ * @param {Object} req.userToken - Información del usuario extraída previamente por el middleware de validación JWT.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con el nuevo token y datos actualizados del usuario.
+ */
 const renovarToken = async (req, res) => {
     try {
         //la info biene del middlewere validarJWT

@@ -1,7 +1,15 @@
 const connect = require('../configs/dbConnect');
 const queries = require("./Queries/queriesMediciones"); 
 
-//Obtener las mediciones de un cultivo
+/**
+ * Obtiene el historial completo de mediciones asociadas a un cultivo.
+ * * @async
+ * @function getMedicionesByCultivo
+ * @param {number|string} id_cultivo - Identificador único del cultivo.
+ * @returns {Promise<Array<Object>>} Un array de objetos, donde cada objeto representa una lectura 
+ * de sensores (temperatura, humedad, etc.) en un momento específico.
+ * * @throws {Error} Si existe un problema en la conexión con la base de datos o en la consulta.
+ */
 const getMedicionesByCultivo = async (id_cultivo) => {
     let cliente, result;
     try {

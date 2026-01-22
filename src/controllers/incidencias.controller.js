@@ -8,7 +8,12 @@ const {
     cambiarPrioridadIncidencia,
     deleteIncidencia } = require('../models/incidencias.model');
 
-// Crear incidencia (Prodcutor)
+/**
+ * Registra una nueva incidencia en el sistema.(Prodcutor)
+ * @async
+ * @param {Object} req.body - Datos de la incidencia: titulo, descripcion, tipo, id_cultivo, id_productor.
+ * @note La prioridad se establece como 'media' por defecto en el modelo.
+ */
 const crearNuevaIncidencia = async (req, res) => {
     try {
         // No incluimos prioridad, el modelo pondrá 'media' por defecto y luego lo puede cambiar el MANAGER
@@ -37,7 +42,11 @@ const crearNuevaIncidencia = async (req, res) => {
     }
 }
 
-// Ver TODAS las incidencias
+/**
+ * Recupera todas las incidencias registradas.
+ * @async
+ * @description Usualmente reservado para perfiles administrativos (Manager).
+ */
 const obtenerTodasIncidencias = async (req, res) => {
     try {
         const incidencias = await getTodasIncidencias();
@@ -56,7 +65,12 @@ const obtenerTodasIncidencias = async (req, res) => {
     }
 }
 
-// Ver incidencia por id
+/**
+ * Obtiene el detalle de una incidencia por su ID.
+ * @async
+ * @description Aplica validación: Los productores solo pueden ver sus propias incidencias.
+ * @param {string} req.params.id - ID único de la incidencia.
+ */
 const verIncidenciaById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -94,7 +108,11 @@ const verIncidenciaById = async (req, res) => {
     }
 }
 
-// Ver todas las incidencias de un productor
+/**
+ * Lista todas las incidencias asociadas a un productor específico.
+ * @async
+ * @param {string} req.params.id - ID del productor a consultar.
+ */
 const verIncidenciasPorProductor = async (req, res) => {
     try {
         // id del productor desde la url
@@ -123,7 +141,10 @@ const verIncidenciasPorProductor = async (req, res) => {
         });
     }
 }
-//Editar una incidencia
+/**
+ * Edita los campos de una incidencia existente.
+ * @async
+ */
 const modificarIncidencia = async (req, res) => {
     try {
         const { id } = req.params;
@@ -155,7 +176,10 @@ const modificarIncidencia = async (req, res) => {
     }
 }
 
-//Eliminar incidencia
+/**
+ * Elimina permanentemente una incidencia del sistema.
+ * @async
+ */
 const eliminarIncidencia = async (req, res) => {
     try {
         const { id } = req.params;
@@ -181,7 +205,11 @@ const eliminarIncidencia = async (req, res) => {
     }
 }
 
-//Cambiar estado de Incidencia
+/**
+ * Actualiza únicamente el estado de la incidencia (ej: 'pendiente', 'en curso', 'resuelta').
+ * @async
+ * @param {string} req.body.estado - Nuevo estado.
+ */
 const actualizarEstadoIncidencia = async (req, res) => {
     try {
         const { id } = req.params;
@@ -211,7 +239,12 @@ const actualizarEstadoIncidencia = async (req, res) => {
     }
 }
 
-// Cambiar Prioridad de la Incidencia (alta, media o baja -> SOLO EL MANAGER)
+/**
+ * Actualiza el nivel de prioridad de la incidencia.
+ * @async
+ * @description Acción restringida a roles de gestión (solo Manager).
+ * @param {string} req.body.prioridad - Nivel (alta, media, baja).
+ */
 const actualizarPrioridadIncidencia = async (req, res) => {
     try {
         const { id } = req.params;

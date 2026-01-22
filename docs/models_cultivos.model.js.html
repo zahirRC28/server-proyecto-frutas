@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: models/cultivos.model.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: models/cultivos.model.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const connect = require('../configs/dbConnect');
+const queries = require('./Queries/queriesCultivos');
+
+/**
+ * Función auxiliar para transformar strings GeoJSON de la BD en objetos JSON nativos.
+ * @function parseGeom
+ * @param {Object} row - Fila obtenida de la base de datos.
+ * @returns {Object} Fila con la propiedad 'poligono' parseada y limpieza de campos temporales.
+ */
+function parseGeom(row) {
+  if (!row) return row;
+  if (row.poligono_geojson) {
+    try { row.poligono = JSON.parse(row.poligono_geojson); } catch (e) { row.poligono = null; }
+    delete row.poligono_geojson;
+  }
+  return row;
+}
+
+/**
+ * Registra un nuevo cultivo con su delimitación geográfica.
+ * @async
+ * @param {Object} datos - Atributos del cultivo e id_productor.
+ * @param {Object} datos.poligonoGeoJSON - Objeto GeoJSON que representa el área del cultivo.
+ * @returns {Promise&lt;Object>} Registro del cultivo creado y procesado.
+ */
+const crearCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON, id_productor }) => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.crearCultivo, [
+      nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
+      JSON.stringify(poligonoGeoJSON), id_productor
+    ]);
+    return parseGeom(res.rows[0]);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+/**
+ * Recupera el listado global de cultivos.
+ * @async
+ * @returns {Promise&lt;Array&lt;Object>>} Lista de cultivos con sus geometrías parseadas.
+ */
+const obtenerCultivos = async () => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.obtenerCultivos, []);
+    return res.rows.map(parseGeom);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+/**
+ * Recupera todos los cultivos pertenecientes a un productor específico.
+ * @async
+ * @param {number|string} id_productor - ID del propietario de los cultivos.
+ */
+const obtenerCultivosProductor = async (id_productor) => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.obtenerCultivosProductor, [id_productor]);
+    return res.rows.map(parseGeom);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+/**
+ * Obtiene la información detallada de un cultivo por su ID.
+ * @async
+ * @param {number|string} id_cultivo - ID único del cultivo.
+ */
+const obtenerCultivoPorId = async (id_cultivo) => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.obtenerCultivoPorId, [id_cultivo]);
+    return parseGeom(res.rows[0]);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+/**
+ * Actualiza los datos de un cultivo existente, validando la propiedad del productor.
+ * @async
+ */
+const actualizarCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON }, id_cultivo, id_productor) => {
+  let client;
+  try {
+    client = await connect();
+    const pol = poligonoGeoJSON ? JSON.stringify(poligonoGeoJSON) : null;
+    console.log(pol)
+    const res = await client.query(queries.actualizarCultivo, [
+      nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
+      pol, id_cultivo, id_productor
+    ]);
+    return parseGeom(res.rows[0]);
+  } finally {
+    if (client) client.release();
+  }
+};
+
+/**
+ * Elimina un cultivo de la base de datos.
+ * @async
+ * @param {number} id_cultivo - ID del cultivo a borrar.
+ * @param {number} id_productor - ID del productor (para asegurar permisos de borrado).
+ */
+const eliminarCultivo = async (id_cultivo, id_productor) => {
+  let client;
+  try {
+    client = await connect();
+    const res = await client.query(queries.eliminarCultivo, [id_cultivo, id_productor]);
+    return res.rows[0];
+  } finally {
+    if (client) client.release();
+  }
+};
+
+module.exports = {
+  crearCultivo,
+  obtenerCultivos,
+  obtenerCultivosProductor,
+  obtenerCultivoPorId,
+  actualizarCultivo,
+  eliminarCultivo
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#JWTgenerator">JWTgenerator</a></li><li><a href="global.html#activarUser">activarUser</a></li><li><a href="global.html#actualizarCultivo">actualizarCultivo</a></li><li><a href="global.html#actualizarEstadoIncidencia">actualizarEstadoIncidencia</a></li><li><a href="global.html#actualizarPrioridadIncidencia">actualizarPrioridadIncidencia</a></li><li><a href="global.html#actualizarReporte">actualizarReporte</a></li><li><a href="global.html#actualizarUsuario">actualizarUsuario</a></li><li><a href="global.html#actualizarUsuarioId">actualizarUsuarioId</a></li><li><a href="global.html#buscarUserByid">buscarUserByid</a></li><li><a href="global.html#buscarUserLogin">buscarUserLogin</a></li><li><a href="global.html#cambiarEstadoIncidencia">cambiarEstadoIncidencia</a></li><li><a href="global.html#cambiarEstadoUser">cambiarEstadoUser</a></li><li><a href="global.html#cambiarPrioridadIncidencia">cambiarPrioridadIncidencia</a></li><li><a href="global.html#checksValidaciones">checksValidaciones</a></li><li><a href="global.html#comprobarCorreo">comprobarCorreo</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#crearCultivo">crearCultivo</a></li><li><a href="global.html#crearIncidencia">crearIncidencia</a></li><li><a href="global.html#crearNuevaIncidencia">crearNuevaIncidencia</a></li><li><a href="global.html#crearReporte">crearReporte</a></li><li><a href="global.html#crearUnCultivo">crearUnCultivo</a></li><li><a href="global.html#crearUser">crearUser</a></li><li><a href="global.html#crearUsuario">crearUsuario</a></li><li><a href="global.html#deleteIncidencia">deleteIncidencia</a></li><li><a href="global.html#desactivarUser">desactivarUser</a></li><li><a href="global.html#editarCultivo">editarCultivo</a></li><li><a href="global.html#editarIncidencia">editarIncidencia</a></li><li><a href="global.html#eliminarCultivo">eliminarCultivo</a></li><li><a href="global.html#eliminarIncidencia">eliminarIncidencia</a></li><li><a href="global.html#eliminarReporte">eliminarReporte</a></li><li><a href="global.html#eliminarUnCultivo">eliminarUnCultivo</a></li><li><a href="global.html#eliminarUser">eliminarUser</a></li><li><a href="global.html#eliminarUserEmail">eliminarUserEmail</a></li><li><a href="global.html#existeCorreo">existeCorreo</a></li><li><a href="global.html#fileFilter">fileFilter</a></li><li><a href="global.html#getIncidenciaById">getIncidenciaById</a></li><li><a href="global.html#getIncidenciasProductor">getIncidenciasProductor</a></li><li><a href="global.html#getMediciones">getMediciones</a></li><li><a href="global.html#getMedicionesByCultivo">getMedicionesByCultivo</a></li><li><a href="global.html#getTodasIncidencias">getTodasIncidencias</a></li><li><a href="global.html#listarCultivos">listarCultivos</a></li><li><a href="global.html#listarCultivosPorProductor">listarCultivosPorProductor</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#modificarIncidencia">modificarIncidencia</a></li><li><a href="global.html#obtenerCultivoPorId">obtenerCultivoPorId</a></li><li><a href="global.html#obtenerCultivos">obtenerCultivos</a></li><li><a href="global.html#obtenerCultivosProductor">obtenerCultivosProductor</a></li><li><a href="global.html#obtenerReportePorId">obtenerReportePorId</a></li><li><a href="global.html#obtenerRolByNombre">obtenerRolByNombre</a></li><li><a href="global.html#obtenerRolByid">obtenerRolByid</a></li><li><a href="global.html#obtenerTodasIncidencias">obtenerTodasIncidencias</a></li><li><a href="global.html#obtenerTodosReportes">obtenerTodosReportes</a></li><li><a href="global.html#obtenerTodosRoles">obtenerTodosRoles</a></li><li><a href="global.html#obtenerTodosUsers">obtenerTodosUsers</a></li><li><a href="global.html#obtenerUser">obtenerUser</a></li><li><a href="global.html#obtenerUsuariosPorRolNombre">obtenerUsuariosPorRolNombre</a></li><li><a href="global.html#parseGeom">parseGeom</a></li><li><a href="global.html#renovarToken">renovarToken</a></li><li><a href="global.html#renovarUserID">renovarUserID</a></li><li><a href="global.html#storage">storage</a></li><li><a href="global.html#todosRoles">todosRoles</a></li><li><a href="global.html#todosUsers">todosUsers</a></li><li><a href="global.html#upload">upload</a></li><li><a href="global.html#usuariosPorRol">usuariosPorRol</a></li><li><a href="global.html#verCultivoID">verCultivoID</a></li><li><a href="global.html#verIncidenciaById">verIncidenciaById</a></li><li><a href="global.html#verIncidenciasPorProductor">verIncidenciasPorProductor</a></li><li><a href="global.html#verificarJWT">verificarJWT</a></li><li><a href="global.html#verificarRol">verificarRol</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Jan 22 2026 13:18:32 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

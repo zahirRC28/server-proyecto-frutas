@@ -4,12 +4,14 @@ const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid,
     activarUser, desactivarUser, obtenerUsuariosPorRolNombre
 } = require('../models/user.model');
 
+/**
+ * Registra un nuevo usuario en el sistema con contraseña encriptada.
+ * @async
+ * @param {Object} req.body - Datos del usuario: nombre, correo, contrasenia, rol, id_manager.
+ * @returns {Promise<void>} JSON con el usuario creado o error de validación (email duplicado/rol inexistente).
+ */
 const crearUsuario = async(req, res) =>{
     const {nombre, correo, contrasenia, rol, id_manager} = req.body
-        //console.log(nombre);
-        //console.log(correo);
-        //console.log(contrasenia);
-        //console.log(rol);
     try {
         //comprobamos que el correo no este registrado
         const existe = await existeCorreo(correo);
@@ -60,6 +62,12 @@ const crearUsuario = async(req, res) =>{
     }
 };
 
+/**
+ * Actualiza los datos de un usuario existente.
+ * @async
+ * @param {string} req.params.id - ID del usuario a actualizar.
+ * @description Si se incluye una nueva contraseña, se encripta; de lo contrario, se mantiene la actual.
+ */
 const actualizarUsuario = async(req, res) =>{
     const { id } = req.params;
     const {nombre, correo, contrasenia, rol} = req.body
@@ -104,6 +112,10 @@ const actualizarUsuario = async(req, res) =>{
     }
 };
 
+/**
+ * Elimina físicamente a un usuario mediante su ID y correo.
+ * @async
+ */
 const eliminarUser = async(req, res)=>{
     const { id } = req.params;
     const { correo } = req.body;
@@ -130,6 +142,10 @@ const eliminarUser = async(req, res)=>{
     }
 }
 
+/**
+ * Obtiene el perfil detallado de un usuario por su ID.
+ * @async
+ */
 const obtenerUser = async(req, res) =>{
     const { id } = req.params;
     try {
@@ -155,6 +171,11 @@ const obtenerUser = async(req, res) =>{
     }
 }
 
+/**
+ * Lista todos los usuarios relacionados con un Manager o la totalidad del sistema.
+ * @async
+ * @param {string} req.params.id - ID de referencia (usualmente el manager_id).
+ */
 const obtenerTodosUsers = async(req, res) =>{
     const { id } = req.params;
     try {
@@ -173,6 +194,10 @@ const obtenerTodosUsers = async(req, res) =>{
     }
 }
 
+/**
+ * Obtiene el catálogo completo de roles disponibles en la base de datos.
+ * @async
+ */
 const todosRoles = async(req, res)=>{
     try {
         const todosRoles = await obtenerTodosRoles();
@@ -189,6 +214,12 @@ const todosRoles = async(req, res)=>{
         });
     }
 }
+
+/**
+ * Alterna el estado (activo/inactivo) de un usuario.
+ * @async
+ * @description Si el usuario está activo lo desactiva, y viceversa. Útil para suspensiones temporales.
+ */
 const cambiarEstadoUser = async(req, res)=>{
     const { id } = req.params;
     try {
@@ -219,6 +250,13 @@ const cambiarEstadoUser = async(req, res)=>{
         });
     }
 }
+
+/**
+ * Filtra y devuelve usuarios basados en el nombre de su rol.
+ * @async
+ * @param {Object} req.body - Cuerpo de la petición.
+ * @param {string} req.body.nombre - Nombre del rol (ej: 'Productor', 'Manager').
+ */
 const usuariosPorRol = async(req, res)=>{
     const { nombre } = req.body;
     try{

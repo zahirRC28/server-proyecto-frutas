@@ -29,7 +29,7 @@ router.post('/crear', [
         .isInt().withMessage('El id de manager tiene que ser un numero entero')
         .bail()
     , checksValidaciones
-    ,verificarRol(['Administrador'])
+    //,verificarRol(['Administrador'])
 ], crearUsuario);
 
 router.put('/actualizar/:id', [

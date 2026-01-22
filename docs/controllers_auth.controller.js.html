@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/auth.controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/auth.controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { JWTgenerator } = require('../helpers/jwt');
+const bycrypt = require('bcryptjs');
+const { buscarUserLogin, renovarUserID } = require('../models/auth.model')
+
+/**
+ * Autentica un usuario y genera un token JWT.
+ * * @async
+ * @function login
+ * @param {Object} req - Objeto de petición de Express.
+ * @param {Object} req.body - Cuerpo de la petición.
+ * @param {string} req.body.correo - Correo electrónico del usuario.
+ * @param {string} req.body.contrasenia - Contraseña en texto plano.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise&lt;void>} Envía una respuesta JSON con el estado de la autenticación, datos del usuario y el token.
+ */
+const login = async(req, res) =>{
+    const {correo, contrasenia} = req.body
+    try {
+        //console.log(correo);
+        //console.log(contrasenia)
+        //comprobamos que el exista un usuario con ese correo
+        const usuario = await buscarUserLogin(correo);
+        //console.log(usuario)
+        if (!usuario) {
+            return res.status(400).json({
+                ok: false,
+                msg: "No hay usuario con este email."
+            });
+        };
+
+        if(usuario.activo === false) {
+            return res.status(400).json({
+                ok: false,
+                msg: "El usuario no esta activo."
+            });
+        }
+        //comprobamos que sea la misma contraseña
+        const contraBien = await bycrypt.compare(contrasenia, usuario.contrasenia_hash);
+        //console.log(contraBien);
+        if (!contraBien) {
+            return res.status(401).json({
+                ok: false,
+                msg: "La contraseña no es válida."
+            })
+        }
+        //creamos el payload para el token
+        const payload = {
+            uid: usuario.id_usuario,
+            nombre: usuario.nombre_completo,
+            rol: usuario.rol_nombre
+        }
+        //console.log(payload)
+        const token = await JWTgenerator(payload);
+        const user = {
+            uid: usuario.id_usuario,
+            nombre: usuario.nombre_completo,
+            correo: usuario.correo,
+            rol: usuario.rol_nombre
+        }
+        return res.status(200).json({
+            ok: true,
+            msg: `Login exitoso, bienvenido ${user.nombre}`,
+            user: user,
+            token: token
+        })
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            msg: "Error del servidor. Consulte su administrador."
+        });
+    }
+};
+
+/**
+ * Genera un nuevo token JWT válido basado en un token existente y válido.
+ * Generalmente utilizado para extender la sesión del usuario.
+ * * @async
+ * @function renovarToken
+ * @param {Object} req - Objeto de petición de Express.
+ * @param {Object} req.userToken - Información del usuario extraída previamente por el middleware de validación JWT.
+ * @param {Object} res - Objeto de respuesta de Express.
+ * @returns {Promise&lt;void>} Envía una respuesta JSON con el nuevo token y datos actualizados del usuario.
+ */
+const renovarToken = async (req, res) => {
+    try {
+        //la info biene del middlewere validarJWT
+        const { uid, nombre, rol } = req.userToken;
+
+        const payload = { uid, nombre, rol };
+        //console.log(payload)
+        const token = await JWTgenerator(payload);
+        //console.log(token)
+        const usuario = await renovarUserID(uid);
+        //console.log(usuario);
+        return res.status(200).json({
+            ok: true,
+            msg: 'El token ha sido renovado.',
+            user: {
+                uid: usuario.id_usuario,
+                nombre: usuario.nombre_completo,
+                rol: usuario.rol
+            },
+            token
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            ok: false,
+            msg: "Error del servidor. Consulte su administrador."
+        });
+    }
+};
+
+
+module.exports = {
+    login,
+    renovarToken
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#JWTgenerator">JWTgenerator</a></li><li><a href="global.html#activarUser">activarUser</a></li><li><a href="global.html#actualizarCultivo">actualizarCultivo</a></li><li><a href="global.html#actualizarEstadoIncidencia">actualizarEstadoIncidencia</a></li><li><a href="global.html#actualizarPrioridadIncidencia">actualizarPrioridadIncidencia</a></li><li><a href="global.html#actualizarReporte">actualizarReporte</a></li><li><a href="global.html#actualizarUsuario">actualizarUsuario</a></li><li><a href="global.html#actualizarUsuarioId">actualizarUsuarioId</a></li><li><a href="global.html#buscarUserByid">buscarUserByid</a></li><li><a href="global.html#buscarUserLogin">buscarUserLogin</a></li><li><a href="global.html#cambiarEstadoIncidencia">cambiarEstadoIncidencia</a></li><li><a href="global.html#cambiarEstadoUser">cambiarEstadoUser</a></li><li><a href="global.html#cambiarPrioridadIncidencia">cambiarPrioridadIncidencia</a></li><li><a href="global.html#checksValidaciones">checksValidaciones</a></li><li><a href="global.html#comprobarCorreo">comprobarCorreo</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#crearCultivo">crearCultivo</a></li><li><a href="global.html#crearIncidencia">crearIncidencia</a></li><li><a href="global.html#crearNuevaIncidencia">crearNuevaIncidencia</a></li><li><a href="global.html#crearReporte">crearReporte</a></li><li><a href="global.html#crearUnCultivo">crearUnCultivo</a></li><li><a href="global.html#crearUser">crearUser</a></li><li><a href="global.html#crearUsuario">crearUsuario</a></li><li><a href="global.html#deleteIncidencia">deleteIncidencia</a></li><li><a href="global.html#desactivarUser">desactivarUser</a></li><li><a href="global.html#editarCultivo">editarCultivo</a></li><li><a href="global.html#editarIncidencia">editarIncidencia</a></li><li><a href="global.html#eliminarCultivo">eliminarCultivo</a></li><li><a href="global.html#eliminarIncidencia">eliminarIncidencia</a></li><li><a href="global.html#eliminarReporte">eliminarReporte</a></li><li><a href="global.html#eliminarUnCultivo">eliminarUnCultivo</a></li><li><a href="global.html#eliminarUser">eliminarUser</a></li><li><a href="global.html#eliminarUserEmail">eliminarUserEmail</a></li><li><a href="global.html#existeCorreo">existeCorreo</a></li><li><a href="global.html#fileFilter">fileFilter</a></li><li><a href="global.html#getIncidenciaById">getIncidenciaById</a></li><li><a href="global.html#getIncidenciasProductor">getIncidenciasProductor</a></li><li><a href="global.html#getMediciones">getMediciones</a></li><li><a href="global.html#getMedicionesByCultivo">getMedicionesByCultivo</a></li><li><a href="global.html#getTodasIncidencias">getTodasIncidencias</a></li><li><a href="global.html#listarCultivos">listarCultivos</a></li><li><a href="global.html#listarCultivosPorProductor">listarCultivosPorProductor</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#modificarIncidencia">modificarIncidencia</a></li><li><a href="global.html#obtenerCultivoPorId">obtenerCultivoPorId</a></li><li><a href="global.html#obtenerCultivos">obtenerCultivos</a></li><li><a href="global.html#obtenerCultivosProductor">obtenerCultivosProductor</a></li><li><a href="global.html#obtenerReportePorId">obtenerReportePorId</a></li><li><a href="global.html#obtenerRolByNombre">obtenerRolByNombre</a></li><li><a href="global.html#obtenerRolByid">obtenerRolByid</a></li><li><a href="global.html#obtenerTodasIncidencias">obtenerTodasIncidencias</a></li><li><a href="global.html#obtenerTodosReportes">obtenerTodosReportes</a></li><li><a href="global.html#obtenerTodosRoles">obtenerTodosRoles</a></li><li><a href="global.html#obtenerTodosUsers">obtenerTodosUsers</a></li><li><a href="global.html#obtenerUser">obtenerUser</a></li><li><a href="global.html#obtenerUsuariosPorRolNombre">obtenerUsuariosPorRolNombre</a></li><li><a href="global.html#parseGeom">parseGeom</a></li><li><a href="global.html#renovarToken">renovarToken</a></li><li><a href="global.html#renovarUserID">renovarUserID</a></li><li><a href="global.html#storage">storage</a></li><li><a href="global.html#todosRoles">todosRoles</a></li><li><a href="global.html#todosUsers">todosUsers</a></li><li><a href="global.html#upload">upload</a></li><li><a href="global.html#usuariosPorRol">usuariosPorRol</a></li><li><a href="global.html#verCultivoID">verCultivoID</a></li><li><a href="global.html#verIncidenciaById">verIncidenciaById</a></li><li><a href="global.html#verIncidenciasPorProductor">verIncidenciasPorProductor</a></li><li><a href="global.html#verificarJWT">verificarJWT</a></li><li><a href="global.html#verificarRol">verificarRol</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Jan 22 2026 13:18:32 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
