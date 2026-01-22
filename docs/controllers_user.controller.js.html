@@ -1,4 +1,32 @@
-const bcrypt = require('bcryptjs');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/user.controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/user.controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const bcrypt = require('bcryptjs');
 const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid, 
     actualizarUsuarioId, obtenerTodosRoles, todosUsers, eliminarUserEmail,
     activarUser, desactivarUser, obtenerUsuariosPorRolNombre
@@ -8,7 +36,7 @@ const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid,
  * Registra un nuevo usuario en el sistema con contraseña encriptada.
  * @async
  * @param {Object} req.body - Datos del usuario: nombre, correo, contrasenia, rol, id_manager.
- * @returns {Promise<void>} JSON con el usuario creado o error de validación (email duplicado/rol inexistente).
+ * @returns {Promise&lt;void>} JSON con el usuario creado o error de validación (email duplicado/rol inexistente).
  */
 const crearUsuario = async(req, res) =>{
     const {nombre, correo, contrasenia, rol, id_manager} = req.body
@@ -81,7 +109,7 @@ const actualizarUsuario = async(req, res) =>{
         }
         //console.log(existe);
         let contrasenaFinal;
-        if (contrasenia && contrasenia.trim() !== "") {
+        if (contrasenia &amp;&amp; contrasenia.trim() !== "") {
             const salt = bcrypt.genSaltSync();
             contrasenaFinal = bcrypt.hashSync(contrasenia, salt);
         } else {
@@ -285,4 +313,26 @@ module.exports ={
     todosRoles,
     cambiarEstadoUser,
     usuariosPorRol
-}
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#JWTgenerator">JWTgenerator</a></li><li><a href="global.html#activarUser">activarUser</a></li><li><a href="global.html#actualizarCultivo">actualizarCultivo</a></li><li><a href="global.html#actualizarEstadoIncidencia">actualizarEstadoIncidencia</a></li><li><a href="global.html#actualizarPrioridadIncidencia">actualizarPrioridadIncidencia</a></li><li><a href="global.html#actualizarReporte">actualizarReporte</a></li><li><a href="global.html#actualizarUsuario">actualizarUsuario</a></li><li><a href="global.html#actualizarUsuarioId">actualizarUsuarioId</a></li><li><a href="global.html#buscarUserByid">buscarUserByid</a></li><li><a href="global.html#buscarUserLogin">buscarUserLogin</a></li><li><a href="global.html#cambiarEstadoIncidencia">cambiarEstadoIncidencia</a></li><li><a href="global.html#cambiarEstadoUser">cambiarEstadoUser</a></li><li><a href="global.html#cambiarPrioridadIncidencia">cambiarPrioridadIncidencia</a></li><li><a href="global.html#checksValidaciones">checksValidaciones</a></li><li><a href="global.html#comprobarCorreo">comprobarCorreo</a></li><li><a href="global.html#connect">connect</a></li><li><a href="global.html#crearCultivo">crearCultivo</a></li><li><a href="global.html#crearIncidencia">crearIncidencia</a></li><li><a href="global.html#crearNuevaIncidencia">crearNuevaIncidencia</a></li><li><a href="global.html#crearReporte">crearReporte</a></li><li><a href="global.html#crearUnCultivo">crearUnCultivo</a></li><li><a href="global.html#crearUser">crearUser</a></li><li><a href="global.html#crearUsuario">crearUsuario</a></li><li><a href="global.html#deleteIncidencia">deleteIncidencia</a></li><li><a href="global.html#desactivarUser">desactivarUser</a></li><li><a href="global.html#editarCultivo">editarCultivo</a></li><li><a href="global.html#editarIncidencia">editarIncidencia</a></li><li><a href="global.html#eliminarCultivo">eliminarCultivo</a></li><li><a href="global.html#eliminarIncidencia">eliminarIncidencia</a></li><li><a href="global.html#eliminarReporte">eliminarReporte</a></li><li><a href="global.html#eliminarUnCultivo">eliminarUnCultivo</a></li><li><a href="global.html#eliminarUser">eliminarUser</a></li><li><a href="global.html#eliminarUserEmail">eliminarUserEmail</a></li><li><a href="global.html#existeCorreo">existeCorreo</a></li><li><a href="global.html#fileFilter">fileFilter</a></li><li><a href="global.html#getIncidenciaById">getIncidenciaById</a></li><li><a href="global.html#getIncidenciasProductor">getIncidenciasProductor</a></li><li><a href="global.html#getMediciones">getMediciones</a></li><li><a href="global.html#getMedicionesByCultivo">getMedicionesByCultivo</a></li><li><a href="global.html#getTodasIncidencias">getTodasIncidencias</a></li><li><a href="global.html#listarCultivos">listarCultivos</a></li><li><a href="global.html#listarCultivosPorProductor">listarCultivosPorProductor</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#modificarIncidencia">modificarIncidencia</a></li><li><a href="global.html#obtenerCultivoPorId">obtenerCultivoPorId</a></li><li><a href="global.html#obtenerCultivos">obtenerCultivos</a></li><li><a href="global.html#obtenerCultivosProductor">obtenerCultivosProductor</a></li><li><a href="global.html#obtenerReportePorId">obtenerReportePorId</a></li><li><a href="global.html#obtenerRolByNombre">obtenerRolByNombre</a></li><li><a href="global.html#obtenerRolByid">obtenerRolByid</a></li><li><a href="global.html#obtenerTodasIncidencias">obtenerTodasIncidencias</a></li><li><a href="global.html#obtenerTodosReportes">obtenerTodosReportes</a></li><li><a href="global.html#obtenerTodosRoles">obtenerTodosRoles</a></li><li><a href="global.html#obtenerTodosUsers">obtenerTodosUsers</a></li><li><a href="global.html#obtenerUser">obtenerUser</a></li><li><a href="global.html#obtenerUsuariosPorRolNombre">obtenerUsuariosPorRolNombre</a></li><li><a href="global.html#parseGeom">parseGeom</a></li><li><a href="global.html#renovarToken">renovarToken</a></li><li><a href="global.html#renovarUserID">renovarUserID</a></li><li><a href="global.html#storage">storage</a></li><li><a href="global.html#todosRoles">todosRoles</a></li><li><a href="global.html#todosUsers">todosUsers</a></li><li><a href="global.html#upload">upload</a></li><li><a href="global.html#usuariosPorRol">usuariosPorRol</a></li><li><a href="global.html#verCultivoID">verCultivoID</a></li><li><a href="global.html#verIncidenciaById">verIncidenciaById</a></li><li><a href="global.html#verIncidenciasPorProductor">verIncidenciasPorProductor</a></li><li><a href="global.html#verificarJWT">verificarJWT</a></li><li><a href="global.html#verificarRol">verificarRol</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Jan 22 2026 13:18:32 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
