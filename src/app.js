@@ -45,6 +45,8 @@ app.use('/api/v1/reporte', require('./routes/reporte.routes'));
 app.use('/api/v1/cultivo', require('./routes/cultivos.routes'));
 app.use('/api/v1/incidencia', require('./routes/incidencias.routes'));
 app.use('/api/v1/notificacion', require('./routes/notificacion.routes'));
+app.use('/api/v1/multimedia', require('./routes/multimedia.routes'));
+
 
 //LISTENERS
 app.listen(port, ()=>{
