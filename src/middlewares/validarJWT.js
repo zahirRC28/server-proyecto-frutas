@@ -19,7 +19,7 @@ const verificarJWT = (req, res, next) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(403).json({
             ok: false,
-            msg: "Token no proporcionadgto o mal formado"
+            msg: "Token no proporcionado o mal formado"
         });
     }
     

@@ -64,7 +64,7 @@ router.put(
 
 router.delete(
   '/eliminar/:id',
-  verificarRol(['Productor','Administrador','Manager']),
+  verificarRol(['Productor','Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     checksValidaciones
