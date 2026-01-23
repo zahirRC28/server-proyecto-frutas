@@ -72,12 +72,20 @@ const queries = {
         WHERE correo = $1
     `
     , usuariosPorRolNombre: `
-        SELECT u.id_usuario, u.nombre_completo, u.correo, r.nombre AS rol_nombre, u.fecha_ingreso, u.activo, u.fecha_baja
-        FROM usuarios u
-        INNER JOIN roles r ON u.id_rol = r.id_rol
-        WHERE r.nombre = $1
-        ORDER BY u.nombre_completo ASC;
-    `
+    SELECT 
+        u.id_usuario, 
+        u.nombre_completo, 
+        u.correo, 
+        u.id_manager,  -- <--- ESTE ES EL CAMPO VITAL
+        r.nombre AS rol_nombre, 
+        u.fecha_ingreso, 
+        u.activo, 
+        u.fecha_baja
+    FROM usuarios u
+    INNER JOIN roles r ON u.id_rol = r.id_rol
+    WHERE r.nombre = $1
+    ORDER BY u.nombre_completo ASC;
+`
 };
 
 module.exports = queries;

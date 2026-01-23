@@ -111,7 +111,7 @@ router.put('/cambiarEstado/:id', [
 router.get('/todosRoles', verificarRol(['Administrador']), todosRoles);
 
 router.post('/porUserRol', [
-    verificarRol(['Administrador', 'Jefe']),
+    verificarRol(['Administrador', 'Manager']),
     check('nombre')
         .notEmpty().withMessage('Se necesita el nombre del rol')
         .bail()
