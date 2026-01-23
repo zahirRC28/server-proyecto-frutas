@@ -76,7 +76,7 @@ const listarCultivosPorProductor = async (req, res) => {
         cultivos: list 
     });
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     return res.status(500).json({ 
         ok: false, 
         msg: 'Error del servidor' 
