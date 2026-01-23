@@ -273,7 +273,7 @@ const getAnalisisClimatico = async (req, res) => {
         return res.status(200).json({
             ok: true,
             msg: 'Análisis climático obtenido con éxito',
-            data: info.data, // Contiene el array con date, temp_mean, precip_prob...
+            data: info.data, // Contiene el array con date, precip_prob...
             location: info.location
         });
 
