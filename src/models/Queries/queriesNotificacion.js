@@ -21,7 +21,16 @@ const queries = {
     SELECT *
     FROM public.notificaciones
     ORDER BY creado DESC;
+  `,
+
+  actualizarLeido: `
+    UPDATE public.notificaciones
+    SET leido = $1
+    WHERE id_notificacion = $2
+    AND id_receptor = $3
+    RETURNING *;
   `
+
 }
 
 module.exports = queries;

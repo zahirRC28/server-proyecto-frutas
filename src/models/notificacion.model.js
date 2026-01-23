@@ -53,4 +53,24 @@ const obtenerTodas = async () => {
   }
 };
 
-module.exports = {crearUnaNotificacion, obtenerPorCreador, obtenerPorReceptor, obtenerTodas};
+const marcarComoLeida = async (id_notificacion, id_receptor) => {
+  const client = await connect();
+  try {
+    const res = await client.query(
+      queries.actualizarLeido,
+      [true, id_notificacion, id_receptor]
+    );
+    return res.rows[0];
+  } finally {
+    client.release();
+  }
+};
+
+
+module.exports = {
+  crearUnaNotificacion, 
+  obtenerPorCreador, 
+  obtenerPorReceptor, 
+  obtenerTodas, 
+  marcarComoLeida
+};

@@ -5,7 +5,12 @@ const { check, body } = require('express-validator');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 
 
-const {crearNotificacion, obtenerNotificacionesPorCreador, obtenerNotificacionesPorReceptor, obtenerNotificacionesTodas} = require("../controllers/notificacion.controller");
+const {
+  crearNotificacion, 
+  obtenerNotificacionesPorCreador, 
+  obtenerNotificacionesPorReceptor, 
+  obtenerNotificacionesTodas, 
+  marcarNotificacionLeida } = require("../controllers/notificacion.controller");
 
 router.post(
   '/crear',
@@ -46,6 +51,13 @@ router.get(
   '/',
   [ verificarRol(['Productor','Administrador', 'Manager', 'Asesor']) ],checksValidaciones,
   obtenerNotificacionesTodas
+);
+
+router.put(
+  '/:id/leida',
+  [ verificarRol(['Productor','Administrador', 'Manager', 'Asesor']) ],
+  checksValidaciones,
+  marcarNotificacionLeida
 );
 
 

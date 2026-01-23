@@ -1,4 +1,9 @@
-const {crearUnaNotificacion, obtenerPorCreador, obtenerPorReceptor, obtenerTodas} = require('../models/notificacion.model');
+const {
+  crearUnaNotificacion, 
+  obtenerPorCreador, 
+  obtenerPorReceptor, 
+  obtenerTodas, 
+  marcarComoLeida} = require('../models/notificacion.model');
 
 const crearNotificacion = async (req, res) => {
   try {
@@ -115,5 +120,45 @@ const obtenerNotificacionesTodas = async (req, res) => {
   }
 };
 
+const marcarNotificacionLeida = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const id_receptor = req.userToken && req.userToken.uid;
 
-module.exports = { crearNotificacion, obtenerNotificacionesPorCreador, obtenerNotificacionesPorReceptor, obtenerNotificacionesTodas };
+    if (!id_receptor) {
+      return res.status(401).json({
+        ok: false,
+        msg: 'Usuario no autenticado'
+      });
+    }
+
+    const notificacion = await marcarComoLeida(id, id_receptor);
+
+    if (!notificacion) {
+      return res.status(404).json({
+        ok: false,
+        msg: 'Notificación no encontrada o no autorizada'
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      notification: notificacion
+    });
+
+  } catch (error) {
+    console.error('Error al marcar notificación como leída:', error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Error del servidor'
+    });
+  }
+};
+
+module.exports = { 
+  crearNotificacion, 
+  obtenerNotificacionesPorCreador,
+  obtenerNotificacionesPorReceptor, 
+  obtenerNotificacionesTodas, 
+  marcarNotificacionLeida 
+};
