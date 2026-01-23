@@ -13,17 +13,6 @@
  *    - 'arrayBuffer': Devuelve la respuesta como ArrayBuffer (para manipulación de bytes)
  * @returns {Promise<Object|Blob|ArrayBuffer|Error>} - Retorna la respuesta de la API según `responseType`, o un objeto de error
  *
- * @example
- * // Llamada GET a la API con token
- * const datos = await conectar('/api/incidencias', 'GET', {}, miToken);
- *
- * @example
- * // Llamada POST con body JSON
- * const datos = await conectar('/api/incidencias', 'POST', { titulo: 'Prueba' }, miToken);
- *
- * @example
- * // Descargar archivo como Blob
- * const archivo = await conectar('/api/incidencias/1/pdf', 'GET', {}, miToken, 'blob');
  */
 
 const conectar = async (urlApi, method = 'GET', body = {}, token, responseType = 'json') => {
