@@ -49,7 +49,7 @@ router.get(
 
 router.get(
   '/',
-  [ verificarRol(['Productor','Administrador', 'Manager', 'Asesor']) ],checksValidaciones,
+  [ verificarRol(['Administrador'])],checksValidaciones,
   obtenerNotificacionesTodas
 );
 
