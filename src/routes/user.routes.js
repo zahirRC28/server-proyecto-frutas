@@ -1,12 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { crearUsuario, actualizarUsuario, obtenerTodosUsers, obtenerUser, todosRoles, eliminarUser, cambiarEstadoUser, usuariosPorRol } = require('../controllers/user.controller');
+const {
+  crearUsuario,
+  actualizarUsuario,
+  obtenerTodosUsers,
+  obtenerUser,
+  todosRoles,
+  eliminarUser,
+  cambiarEstadoUser,
+  usuariosPorRol,
+  listarProductores
+} = require('../controllers/user.controller');
 const { verificarRol } = require("../middlewares/verificarRol");
 const { verificarJWT } = require('../middlewares/validarJWT');
 const { checksValidaciones } = require('../middlewares/checkValidations');
 const { check } = require('express-validator');
 
+// Crear usuario: ahora protegido (solo Administrador)
 router.post('/crear', [
+    verificarRol(['Administrador']),
     check('nombre')
         .notEmpty().withMessage('El nombre no puede estar vacio')
         .bail()
@@ -29,9 +41,9 @@ router.post('/crear', [
         .isInt().withMessage('El id de manager tiene que ser un numero entero')
         .bail()
     , checksValidaciones
-    //,verificarRol(['Administrador'])
 ], crearUsuario);
 
+// Actualizar usuario: Administrador
 router.put('/actualizar/:id', [
     verificarRol(['Administrador']),
     check('id')
@@ -58,6 +70,7 @@ router.put('/actualizar/:id', [
     , checksValidaciones
 ], actualizarUsuario);
 
+// Eliminar usuario: Administrador
 router.delete('/eliminar/:id', [
     verificarRol(['Administrador']),
     check('id')
@@ -75,6 +88,7 @@ router.delete('/eliminar/:id', [
     , checksValidaciones
 ], eliminarUser);
 
+// Obtener usuario por id (autenticado)
 router.get('/usuario/:id', [
     verificarJWT,
     check('id')
@@ -86,6 +100,7 @@ router.get('/usuario/:id', [
     , checksValidaciones
 ], obtenerUser);
 
+// Obtener todos los usuarios (Administrador)
 router.get('/todosUsuarios/:id', [
     verificarRol(['Administrador']),
     check('id')
@@ -97,6 +112,7 @@ router.get('/todosUsuarios/:id', [
     , checksValidaciones
 ], obtenerTodosUsers);
 
+// Cambiar estado (activar/desactivar) - Administrador
 router.put('/cambiarEstado/:id', [
     verificarRol(['Administrador']),
     check('id')
@@ -108,8 +124,10 @@ router.put('/cambiarEstado/:id', [
     , checksValidaciones
 ], cambiarEstadoUser)
 
+// Obtener todos los roles - Administrador
 router.get('/todosRoles', verificarRol(['Administrador']), todosRoles);
 
+// Usuarios por rol (Admin o Manager)
 router.post('/porUserRol', [
     verificarRol(['Administrador', 'Manager']),
     check('nombre')
@@ -118,5 +136,10 @@ router.post('/porUserRol', [
         .trim()
     , checksValidaciones
 ], usuariosPorRol);
+
+// Productores según rol del solicitante (Admin / Manager / Asesor)
+router.get('/productores', [
+    verificarRol(['Administrador', 'Manager', 'Asesor']),
+], listarProductores);
 
 module.exports = router;

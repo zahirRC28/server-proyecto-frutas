@@ -39,7 +39,8 @@ const queries = {
         RETURNING *;
     `,
     eliminarUserById_notificaciones: `
-        DELETE FROM notificaciones WHERE id_usuario = $1;
+        DELETE FROM notificaciones
+        WHERE id_creador = $1 OR id_receptor = $1;
     `,
     eliminarUserByEmail: `
         DELETE 
@@ -70,13 +71,13 @@ const queries = {
         SELECT * 
         FROM usuarios 
         WHERE correo = $1
-    `
-    , usuariosPorRolNombre: `
+    `,
+    usuariosPorRolNombre: `
     SELECT 
         u.id_usuario, 
         u.nombre_completo, 
         u.correo, 
-        u.id_manager,  -- <--- ESTE ES EL CAMPO VITAL
+        u.id_manager,
         r.nombre AS rol_nombre, 
         u.fecha_ingreso, 
         u.activo, 
@@ -85,7 +86,23 @@ const queries = {
     INNER JOIN roles r ON u.id_rol = r.id_rol
     WHERE r.nombre = $1
     ORDER BY u.nombre_completo ASC;
-`
+    `,
+    obtenerProductoresPorManager: `
+    SELECT 
+        u.id_usuario, 
+        u.nombre_completo, 
+        u.correo, 
+        u.id_manager,
+        r.nombre AS rol_nombre, 
+        u.fecha_ingreso, 
+        u.activo, 
+        u.fecha_baja
+    FROM usuarios u
+    INNER JOIN roles r ON u.id_rol = r.id_rol
+    WHERE r.nombre = $1
+      AND u.id_manager = $2
+    ORDER BY u.nombre_completo ASC;
+    `
 };
 
 module.exports = queries;
