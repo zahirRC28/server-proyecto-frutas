@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid, 
     actualizarUsuarioId, obtenerTodosRoles, todosUsers, eliminarUserEmail,
-    activarUser, desactivarUser, obtenerUsuariosPorRolNombre
+    activarUser, desactivarUser, obtenerUsuariosPorRolNombre, obtenerProductoresSegunRol
 } = require('../models/user.model');
 
 /**
@@ -116,31 +116,52 @@ const actualizarUsuario = async(req, res) =>{
  * Elimina físicamente a un usuario mediante su ID y correo.
  * @async
  */
-const eliminarUser = async(req, res)=>{
-    const { id } = req.params;
-    const { correo } = req.body;
-    try {
-        const existe = await buscarUserByid(id);
-        if(!existe){
-            return res.status(400).json({
-                ok: false,
-                msg: "El usuario con este id no existe"
-            });
-        }
-        const eliminado = await eliminarUserEmail(correo, id);
-        return res.status(200).json({
-            ok: true,
-            msg: "Usuario fue eliminado correctamente.",
-            usuario: eliminado
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            ok: false,
-            msg: "Error del servidor. Consulte su administrador."
-        });
+const eliminarUser = async(req, res) => {
+  const { id } = req.params;
+  const { correo } = req.body;
+
+  try {
+    // 1) Compruebo que el usuario exista por id
+    const existe = await buscarUserByid(id);
+    if (!existe) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El usuario con este id no existe"
+      });
     }
-}
+
+    // 2) Compruebo que el correo proporcionado coincida con el del usuario (evita borrados por error)
+    if (!correo || String((existe.correo || '')).trim().toLowerCase() !== String(correo).trim().toLowerCase()) {
+      return res.status(400).json({
+        ok: false,
+        msg: "El correo proporcionado no coincide con el usuario indicado"
+      });
+    }
+
+    // 3) Intento eliminar (modelo maneja la transacción)
+    const eliminado = await eliminarUserEmail(correo, Number(id));
+
+    // Si la función del modelo devuelve null o vacío, avisamos
+    if (!eliminado) {
+      return res.status(500).json({
+        ok: false,
+        msg: "No se pudo eliminar el usuario — consulte los logs del servidor."
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      msg: "Usuario fue eliminado correctamente.",
+      usuario: eliminado
+    });
+  } catch (error) {
+    console.error('Error en controlador eliminarUser:', error.stack || error);
+    return res.status(500).json({
+      ok: false,
+      msg: "Error del servidor. Consulte su administrador."
+    });
+  }
+};
 
 /**
  * Obtiene el perfil detallado de un usuario por su ID.
@@ -276,6 +297,27 @@ const usuariosPorRol = async(req, res)=>{
     }
 }
 
+
+const listarProductores = async (req, res) => {
+  try {
+    // req.userToken viene de verificarJWT (ejecutado por verificarRol)
+    const rolSolicitante = req.userToken?.rol;
+    const uidSolicitante = req.userToken?.uid;
+    const productores = await obtenerProductoresSegunRol('Productor', rolSolicitante, uidSolicitante);
+    return res.status(200).json({
+      ok: true,
+      msg: 'Productores obtenidos correctamente',
+      productores
+    });
+  } catch (error) {
+    console.error('Error en listarProductores:', error);
+    return res.status(500).json({
+      ok: false,
+      msg: 'Error del servidor. Consulte su administrador.'
+    });
+  }
+};
+
 module.exports ={
     crearUsuario,
     actualizarUsuario,
@@ -284,5 +326,6 @@ module.exports ={
     obtenerTodosUsers,
     todosRoles,
     cambiarEstadoUser,
-    usuariosPorRol
+    usuariosPorRol,
+    listarProductores
 }

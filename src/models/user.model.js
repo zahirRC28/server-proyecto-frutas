@@ -94,20 +94,26 @@ const eliminarUserEmail = async(correo, id_usuario) =>{
 
         await cliente.query('BEGIN');
 
+        // Eliminar notificaciones relacionadas (si no hay, no falla)
         await cliente.query(queries.eliminarUserById_notificaciones, [id_usuario]);
-        result = await cliente.query(queries.eliminarUserByEmail,[correo]);
-        
-        await cliente.query('COMMIT');
-        return result.rows[0];
-    } catch (error) {
-        if (cliente) await cliente.query('ROLLBACK');
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-};
 
+        // Eliminar el usuario por correo y devolver la fila eliminada
+        result = await cliente.query(queries.eliminarUserByEmail,[correo]);
+
+        await cliente.query('COMMIT');
+
+        // Devolver la fila eliminada; si no hubo fila, devolver null
+        return (result && result.rows && result.rows[0]) ? result.rows[0] : null;
+    } catch (error) {
+        if (cliente) {
+            try { await cliente.query('ROLLBACK'); } catch (er) { console.error('Rollback fallido', er); }
+        }
+        console.error('Error en eliminarUserEmail:', error.stack || error);
+        throw error;
+    } finally {
+        if (cliente) cliente.release();
+    }
+}
 /**
  * Obtiene todos los usuarios del sistema excluyendo al usuario actual.
  * @async
@@ -240,6 +246,32 @@ const obtenerUsuariosPorRolNombre = async(nombreRol) =>{
     }
 }
 
+/**
+ * Obtiene productores según el rol del solicitante:
+ * - Si el solicitante es 'Manager' devuelve productores con id_manager = uid
+ * - Si es 'Administrador' o 'Asesor' devuelve todos los productores
+ */
+const obtenerProductoresSegunRol = async(nombreRol, rolSolicitante, uidSolicitante) => {
+    let cliente;
+    try {
+        cliente = await connect();
+        if (rolSolicitante === 'Manager') {
+            // usamos la query específica que filtra por id_manager
+            const res = await cliente.query(queries.obtenerProductoresPorManager, [nombreRol, uidSolicitante]);
+            return res.rows;
+        } else {
+            // Administrador o Asesor: devolvemos todos los Productores
+            const res = await cliente.query(queries.usuariosPorRolNombre, [nombreRol]);
+            return res.rows;
+        }
+    } catch (error) {
+        console.log(error);
+        throw error;
+    } finally {
+        cliente.release();
+    }
+};
+
 module.exports = {
     crearUser,
     actualizarUsuarioId,
@@ -252,5 +284,6 @@ module.exports = {
     existeCorreo,
     activarUser,
     desactivarUser,
-    obtenerUsuariosPorRolNombre
+    obtenerUsuariosPorRolNombre,
+    obtenerProductoresSegunRol
 }
