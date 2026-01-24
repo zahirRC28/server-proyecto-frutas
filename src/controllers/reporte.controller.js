@@ -7,6 +7,7 @@ const {
   obtenerReportePorId,
   obtenerTodosReportes
 } = require('../models/reporte.model');
+
 const { obtenerCultivoPorId } = require('../models/cultivos.model');
 
 const crearUnReporte = async (req, res) => {
@@ -31,9 +32,47 @@ const crearUnReporte = async (req, res) => {
 };
 
 const listarReportes = async (req, res) => {
-  const { uid, rol } = req.userToken;
-  const reports = await obtenerTodosReportes(rol, uid);
-  res.json({ ok: true, count: reports.length, reports });
+  try {
+    const { uid, rol } = req.userToken;
+    const reports = await obtenerTodosReportes(rol, uid);
+
+    return res.status(200).json({
+      ok: true,
+      msg: 'Reportes obtenidos correctamente',
+      count: reports.length,
+      reports
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, msg: 'Error del servidor al obtener los reportes' });
+  }
+};
+
+const listarReportesDeUnProductor = async (req, res) => {
+  try {
+    const { id } = req.params; // id del productor que queremos consultar
+    const { uid, rol } = req.userToken; // id y Rol del que hace la petición
+
+    //Si es Productor y el ID no es el suyo, fuera.
+    if (rol === 'Productor' && uid != id) {
+      return res.status(403).json({
+        ok: false,
+        msg: 'No tienes permiso para ver reportes ajenos'
+      });
+    }
+    // pasar id que viene de la URL
+    const reportes = await obtenerTodosReportes('Productor', id);
+
+    res.json({
+      ok: true,
+      msg: 'Reportes por productor obtenidos correctamente',
+      count: reportes.length,
+      reportes
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false, msg: 'Error del servidor al obtener reportes del productor' });
+  }
 };
 
 const verReporte = async (req, res) => {
@@ -86,6 +125,7 @@ const eliminarUnReporte = async (req, res) => {
 module.exports = {
   crearUnReporte,
   listarReportes,
+  listarReportesDeUnProductor,
   verReporte,
   editarReporte,
   eliminarUnReporte

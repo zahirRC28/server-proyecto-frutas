@@ -7,6 +7,7 @@ const { checksValidaciones } = require('../middlewares/checkValidations');
 const {
   crearUnReporte,
   listarReportes,
+  listarReportesDeUnProductor,
   verReporte,
   editarReporte,
   eliminarUnReporte
@@ -30,15 +31,24 @@ router.post(
   crearUnReporte
 );
 
+//Ver todos MIS reportes
 router.get(
   '/',
-  verificarRol(['Productor', 'Manager', 'Asesor','Administrador']),
+  verificarRol(['Productor', 'Manager', 'Asesor', 'Administrador']),
   listarReportes
 );
 
+//Ver todos los reportes de un productor
+router.get('/productor/:id', [
+  verificarRol(['Productor', 'Manager', 'Asesor', 'Administrador']),
+  check('id').isInt().withMessage('El id del productor debe ser un número entero'),
+  checksValidaciones
+], listarReportesDeUnProductor);
+
+
 router.get(
   '/:id',
-  verificarRol(['Productor', 'Manager', 'Asesor','Administrador']),
+  verificarRol(['Productor', 'Manager', 'Asesor', 'Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     checksValidaciones
@@ -48,7 +58,7 @@ router.get(
 
 router.put(
   '/editar/:id',
-  verificarRol(['Productor','Administrador']),
+  verificarRol(['Productor', 'Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     check('titulo')
@@ -64,7 +74,7 @@ router.put(
 
 router.delete(
   '/eliminar/:id',
-  verificarRol(['Productor','Administrador']),
+  verificarRol(['Productor', 'Administrador']),
   [
     check('id').isInt().withMessage('El id del reporte debe ser un número entero'),
     checksValidaciones
