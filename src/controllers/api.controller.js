@@ -209,7 +209,8 @@ const getHistoricoPorFechas = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).json({
+        console.log(error)
+        res.status(500).json({  
             ok: false,
             msg: "Error interno del servidor"
         });
@@ -217,19 +218,24 @@ const getHistoricoPorFechas = async (req, res) => {
 };
 
 const getAlertaPlagas = async (req, res) => {
+    const { lat, lon, fruta } = req.query;
+    console.log('estos son los daros',lat, lon, fruta);
     try {
-        const { latitud, longitud, fruta } = req.query;
+        
+         
 
         // Validamos que los datos necesarios estén presentes
-        if (!latitud || !longitud || !fruta) {
+       
+        if (!lat || !lon || !fruta) {
+            
             return res.status(400).json({
                 ok: false,
-                msg: 'Faltan parámetros: latitud, longitud y fruta son obligatorios.'
+                msg: 'Faltan parámetros: lat, lon y fruta son obligatorios.',
+                
             });
         }
-
         // Construir la URL con los parámetros
-        const url = `http://44.207.1.251/plagas?latitud=${latitud}&longitud=${longitud}&fruta=${fruta}`;
+        const url = `http://44.207.1.251/plagas?latitud=${lat}&longitud=${lon}&fruta=${fruta}`;
 
         const info = await conectar(url, 'GET');
 
@@ -244,7 +250,7 @@ const getAlertaPlagas = async (req, res) => {
         console.error(error);
         res.status(500).json({
             ok: false,
-            msg: "Error interno del servidor"
+            msg: "Error interno del servidor en plagas"
         });
     }
 };
