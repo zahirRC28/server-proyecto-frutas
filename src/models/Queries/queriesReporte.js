@@ -20,6 +20,14 @@ const queries = {
     ORDER BY r.fecha_reporte DESC;
   `,
 
+  obtenerReportesPorManager: `
+    SELECT r.*, u.nombre_completo AS nombre_productor
+    FROM reportes r
+    JOIN usuarios u ON r.id_productor = u.id_usuario
+    WHERE u.id_manager = $1
+    ORDER BY r.fecha_reporte DESC;
+  `,
+
   verReportePorId: `
     SELECT r.*, u.nombre_completo AS nombre_productor
     FROM reportes r
@@ -36,10 +44,26 @@ const queries = {
     RETURNING *;
   `,
 
+  // Permite actualizar sin validar autoría (para Admin)
+  actualizarReporteAsAdmin: `
+    UPDATE reportes
+    SET titulo = $1,
+        descripcion = $2
+    WHERE id_reporte = $3
+    RETURNING *;
+  `,
+
   eliminarReporte: `
     DELETE FROM reportes
     WHERE id_reporte = $1
       AND id_productor = $2
+    RETURNING *;
+  `,
+
+  // Permite borrar sin validar autoría (para Admin)
+  eliminarReporteAsAdmin: `
+    DELETE FROM reportes
+    WHERE id_reporte = $1
     RETURNING *;
   `
 };
