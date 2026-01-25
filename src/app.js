@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors(corsOptions));
 
 //Multer
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Swagger Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

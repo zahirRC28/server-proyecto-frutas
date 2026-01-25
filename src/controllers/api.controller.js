@@ -1,4 +1,7 @@
 const conectar = require("../helpers/fetch");
+const FormData = require('form-data');
+const fs = require('fs');
+const { buscarUserByid } = require('../models/user.model');
 
 const getTemperatura = async (req, res) => {
     try {
@@ -210,7 +213,7 @@ const getHistoricoPorFechas = async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        res.status(500).json({  
+        res.status(500).json({
             ok: false,
             msg: "Error interno del servidor"
         });
@@ -219,19 +222,14 @@ const getHistoricoPorFechas = async (req, res) => {
 
 const getAlertaPlagas = async (req, res) => {
     const { lat, lon, fruta } = req.query;
-    console.log('estos son los daros',lat, lon, fruta);
+    console.log('estos son los datos lat, lon y fruta', lat, lon, fruta);
     try {
-        
-         
-
-        // Validamos que los datos necesarios estén presentes
-       
         if (!lat || !lon || !fruta) {
-            
+
             return res.status(400).json({
                 ok: false,
                 msg: 'Faltan parámetros: lat, lon y fruta son obligatorios.',
-                
+
             });
         }
         // Construir la URL con los parámetros
@@ -325,6 +323,199 @@ const getAlertaMeteorologica = async (req, res) => {
     }
 };
 
+const identificarImagenPlaga = async (req, res) => {
+    try {
+        // Validar que Multer hizo su trabajo
+        if (!req.file) {
+            return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
+        }
+
+        // Preparar FormData para la API externa
+        const form = new FormData();
+        // Usamos la ruta del archivo que Multer guardó en src/uploads
+        form.append('file', fs.createReadStream(req.file.path));
+
+        const urlApi = 'https://aanearana-modelo-deteccion-plagas.hf.space/detect';
+        const data = await conectar(urlApi, 'POST', form);
+
+        // Gestionar errores del helper fetch
+        if (data.error) {
+            return res.status(data.status || 500).json({
+                ok: false,
+                msg: 'Error en la API de detección',
+                error: data.message
+            });
+        }
+
+        // Enviar éxito al frontend
+        return res.status(200).json({
+            ok: true,
+            msg: 'Análisis de la imagen realizado con éxito',
+            detecciones: data.detecciones,
+            total: data.total,
+        });
+
+    } catch (error) {
+        console.error('Error en el controlador de plagas:', error);
+        res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
+    }
+};
+
+const identificarImagenPlanta = async (req, res) => {
+    try {
+        // Validamos que Multer haya recibido la foto
+        if (!req.file) {
+            return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
+        }
+        const form = new FormData();
+
+        // 'image' segun la docu de la API de David
+        form.append('image', fs.createReadStream(req.file.path));
+
+        // Llamar a la nueva API
+        const urlApi = 'http://18.194.33.82/identificar';
+
+        const data = await conectar(urlApi, 'POST', form);
+
+        // Gestionar la respuesta
+        if (data.error || data.status !== 'success') {
+            return res.status(500).json({
+                ok: false,
+                msg: 'Error al identificar la planta',
+                error: data.message || 'La API externa no respondió correctamente'
+            });
+        }
+
+        //Devolvemos los datos al Front
+        return res.status(200).json({
+            ok: true,
+            msg: 'Análisis de la imagen realizado con éxito',
+            nombre_cientifico: data.nombre_cientifico,
+            nombre_comun: data.nombre_comun,
+            otros_nombres: data.otros_nombres,
+            precision: data.precision
+        });
+
+    } catch (error) {
+        console.error('Error en identificarPlanta:', error);
+        res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
+    }
+};
+
+// Identificar planta, fruta, cultivo y conteo de frutos
+const detectarCultivos = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
+        }
+
+        const form = new FormData();
+        form.append('file', fs.createReadStream(req.file.path));
+
+        const urlApi = 'https://aanearana-tree-detect.hf.space/detect';
+        const data = await conectar(urlApi, 'POST', form);
+
+        // Gestión de error específica: Modelo cargando (503)
+        if (data.status === 503) {
+            return res.status(503).json({
+                ok: false,
+                msg: 'El servidor de IA se está iniciando, por favor reintenta en 10 segundos.'
+            });
+        }
+
+        if (data.error) throw new Error(data.message);
+
+        // Respuesta para Front
+        return res.status(200).json({
+            ok: true,
+            msg: `Análisis de la imagen realizado con éxito. Se han detectado ${data.total_detected} elementos en el cultivo.`,
+            total: data.total_detected,
+            objetos: data.detections,
+        });
+
+    } catch (error) {
+        console.error('Error en detectarCultivos:', error);
+        res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
+    }
+};
+
+//Informacion técnica de valor agronómico del suelo (topografía, textura...)
+const getInfoSuelo = async (req, res) => {
+    try {
+        //Recibimos coordenadas del body (del Front)
+        const { lat, lon } = req.body;
+
+        if (!lat || !lon) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Faltan las coordenadas (lat, lon) para el análisis'
+            });
+        }
+        const urlApi = 'http://18.194.33.82:5002/analisis';
+        const data = await conectar(urlApi, 'POST', { lat, lon });
+
+        if (data.error) throw new Error(data.message);
+
+        return res.status(200).json({
+            ok: true,
+            msg: 'Información del suelo obtenida correctamente',
+            data
+        });
+
+    } catch (error) {
+        console.error('Error en getInfoSuelo:', error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error interno del servidor'
+        });
+    }
+};
+
+const chatAsistente = async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        //Obtenemos el uid del token 
+        const { uid } = req.userToken;
+
+        if (!message) {
+            return res.status(400).json({ ok: false, msg: 'El mensaje es obligatorio' });
+        }
+
+        // Usamos función del modelo para traer los datos del usuario
+        const usuario = await buscarUserByid(uid);
+
+        if (!usuario || !usuario.correo) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'No se pudo obtener el correo para el chatbot.'
+            });
+        }
+
+        //Llamada a la API
+        const urlApi = 'https://vegetai-labels.onrender.com/chat';
+
+        const data = await conectar(urlApi, 'POST', {
+            user_email: usuario.correo, // El correo que sacamos de la BD
+            message
+        });
+
+        if (data.error) throw new Error(data.message);
+
+        return res.status(200).json({
+            ok: true,
+            msg: 'Chatbot conectado correctamente',
+            identificado_como: usuario.correo,
+            respuesta: data.response
+        });
+
+    } catch (error) {
+        console.error('Error en Chatbot:', error);
+        res.status(500).json({ ok: false, msg: 'Error interno del servidor' });
+    }
+};
+
+
 module.exports = {
     getTemperatura,
     getHumedadRelativa,
@@ -336,7 +527,12 @@ module.exports = {
     getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
-    getAlertaMeteorologica
+    getAlertaMeteorologica,
+    identificarImagenPlaga,
+    identificarImagenPlanta,
+    detectarCultivos,
+    getInfoSuelo,
+    chatAsistente
 };
 
 

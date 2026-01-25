@@ -1,3 +1,6 @@
+const fetch = require('node-fetch'); // Asegura que 'fetch' funcione en todo el archivo
+const FormData = require('form-data'); // Asegura que 'instanceof FormData' no de error
+
 /**
  * Función helper para realizar llamadas HTTP a la API
  *
