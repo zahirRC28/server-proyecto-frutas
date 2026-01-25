@@ -105,12 +105,11 @@ router.delete('/eliminar/:id', [
 // Cambiar estado de Incidencia
 router.patch('/estado/:id', [
     verificarRol(['Manager', 'Asesor', 'Administrador']),
-    check('id')
-        .isInt().withMessage('El ID de la incidencia debe ser un número entero'),
     check('estado')
+        .trim()
         .notEmpty().withMessage('El estado es obligatorio')
         .isIn(['abierta', 'en proceso', 'cerrada'])
-        .withMessage('Estado no válido. Los valores permitidos son: abierta en proceso o cerrada'),
+        .withMessage('Estado no válido. Los valores permitidos son: abierta, en proceso o cerrada'),
     checksValidaciones
 ], actualizarEstadoIncidencia);
 
