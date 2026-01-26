@@ -221,21 +221,21 @@ const getHistoricoPorFechas = async (req, res) => {
 };
 
 const getAlertaPlagas = async (req, res) => {
-    const { lat, lon, fruta } = req.query;
+    const { lat, lon, fruta } = req.body;
     console.log('estos son los datos lat, lon y fruta', lat, lon, fruta);
     try {
         if (!lat || !lon || !fruta) {
-
             return res.status(400).json({
                 ok: false,
                 msg: 'Faltan parámetros: lat, lon y fruta son obligatorios.',
 
             });
         }
-        // Construir la URL con los parámetros
-        const url = `http://44.207.1.251/plagas?latitud=${lat}&longitud=${lon}&fruta=${fruta}`;
-
-        const info = await conectar(url, 'GET');
+     
+        const params = new URLSearchParams({ lat, lon, fruta });
+        const urlFull = `https://aanearana-deteccion-plagas.hf.space/plagas?${params.toString()}`;
+        // Llamada a la función conectar
+        const info = await conectar(urlFull, 'GET');
 
         return res.status(200).json({
             ok: true,
@@ -402,43 +402,6 @@ const identificarImagenPlanta = async (req, res) => {
     }
 };
 
-// Identificar planta, fruta, cultivo y conteo de frutos
-const detectarCultivos = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
-        }
-
-        const form = new FormData();
-        form.append('file', fs.createReadStream(req.file.path));
-
-        const urlApi = 'https://aanearana-tree-detect.hf.space/detect';
-        const data = await conectar(urlApi, 'POST', form);
-
-        // Gestión de error específica: Modelo cargando (503)
-        if (data.status === 503) {
-            return res.status(503).json({
-                ok: false,
-                msg: 'El servidor de IA se está iniciando, por favor reintenta en 10 segundos.'
-            });
-        }
-
-        if (data.error) throw new Error(data.message);
-
-        // Respuesta para Front
-        return res.status(200).json({
-            ok: true,
-            msg: `Análisis de la imagen realizado con éxito. Se han detectado ${data.total_detected} elementos en el cultivo.`,
-            total: data.total_detected,
-            objetos: data.detections,
-        });
-
-    } catch (error) {
-        console.error('Error en detectarCultivos:', error);
-        res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
-    }
-};
-
 //Informacion técnica de valor agronómico del suelo (topografía, textura...)
 const getInfoSuelo = async (req, res) => {
     try {
@@ -530,7 +493,6 @@ module.exports = {
     getAlertaMeteorologica,
     identificarImagenPlaga,
     identificarImagenPlanta,
-    detectarCultivos,
     getInfoSuelo,
     chatAsistente
 };

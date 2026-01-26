@@ -39,7 +39,7 @@ const upload = multer({
 router.post(
   '/:entidad/:id',
   [
-    verificarRol(['Administrador']),
+    verificarRol(['Administrador', 'Productor']),
     upload.single('archivo'),
     check('entidad')
       .isIn(['incidencia', 'reporte', 'cultivo'])
@@ -54,7 +54,7 @@ router.post(
 router.get(
   '/:entidad/:id',
   [
-    verificarRol(['Administrador']),
+    verificarRol(['Administrador', 'Productor', 'Manager']),
     check('entidad')
       .isIn(['incidencia', 'reporte', 'cultivo'])
       .withMessage('Entidad no válida'),

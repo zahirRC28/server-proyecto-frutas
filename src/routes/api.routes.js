@@ -19,7 +19,6 @@ const {
     getAlertaMeteorologica,
     identificarImagenPlaga,
     identificarImagenPlanta,
-    detectarCultivos,
     getInfoSuelo,
     chatAsistente
 } = require('../controllers/api.controller')
@@ -37,7 +36,6 @@ router.get('/analisis-climatico', [verificarRol(['Asesor', 'Productor', 'Manager
 router.post('/alerta-meteo', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAlertaMeteorologica);
 router.post('/identificar-plaga', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], upload.single('file'), identificarImagenPlaga);
 router.post('/identificar-planta', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], upload.single('image'), identificarImagenPlanta);
-router.post('/detectar-cultivos', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], upload.single('file'), detectarCultivos);
 router.post('/info-suelo', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getInfoSuelo);
 router.post('/chatbot', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], chatAsistente);
 
