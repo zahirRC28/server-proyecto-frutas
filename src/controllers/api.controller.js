@@ -231,7 +231,7 @@ const getAlertaPlagas = async (req, res) => {
 
             });
         }
-     
+
         const params = new URLSearchParams({ lat, lon, fruta });
         const urlFull = `https://aanearana-deteccion-plagas.hf.space/plagas?${params.toString()}`;
         // Llamada a la función conectar
@@ -463,8 +463,12 @@ const chatAsistente = async (req, res) => {
             message
         });
 
-        if (data.error) throw new Error(data.message);
-
+        if (data.error || data.response?.includes('Rate limit reached')) {
+            return res.status(200).json({ // Enviamos 200 para que el front lo maneje como mensaje
+                ok: false, 
+                msg: "Lo siento, el asistente no está dispinible ahora mismo. Por favor, inténtalo de nuevo en unos minutos."
+            });
+        }
         return res.status(200).json({
             ok: true,
             msg: 'Chatbot conectado correctamente',
