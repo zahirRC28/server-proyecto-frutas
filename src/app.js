@@ -35,6 +35,7 @@ app.use(cors(corsOptions));
 
 //Multer
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 // Swagger Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
@@ -47,8 +48,6 @@ app.use('/api/v1/incidencia', require('./routes/incidencias.routes'));
 app.use('/api/v1/notificacion', require('./routes/notificacion.routes'));
 app.use('/api/v1/multimedia', require('./routes/multimedia.routes'));
 app.use('/api/v1/apis', require('./routes/api.routes'));
+app.use('/api/v1/chat', require('./routes/chat.routes')); 
 
-//LISTENERS
-app.listen(port, ()=>{
-    console.log(`Servidor activo en el puerto ${port} :)`);
-})
+module.exports = app;
