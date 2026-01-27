@@ -1,7 +1,9 @@
-const connect = require('../configs/dbConnect');
+const pool = require('../configs/dbConnect');
 const queries = require('./Queries/queriesNotificacion');
 
-
+/**
+ * Crea una nueva notificación.
+ */
 const crearUnaNotificacion = async ({
   tipo,
   titulo,
@@ -12,74 +14,69 @@ const crearUnaNotificacion = async ({
   entidad_tipo = null,
   entidad_id = null
 }) => {
-  const client = await connect();
-  try {
-    const res = await client.query(
-      queries.crearNotificacion_con_now,
-      [tipo, titulo, mensaje, leido, id_creador, id_receptor, entidad_tipo, entidad_id]
-    );
-    return res.rows[0];
-  } finally {
-    client.release();
-  }
+  const res = await pool.query(
+    queries.crearNotificacion_con_now,
+    [tipo, titulo, mensaje, leido, id_creador, id_receptor, entidad_tipo, entidad_id]
+  );
+  return res.rows[0];
 };
 
-
+/**
+ * Obtiene todas las notificaciones creadas por un usuario.
+ */
 const obtenerPorCreador = async (id_creador) => {
-  const client = await connect();
-  try {
-    const res = await client.query(queries.obtenerNotificacionesPorCreador, [id_creador]);
-    return res.rows;
-  } finally {
-    client.release();
-  }
+  const res = await pool.query(
+    queries.obtenerNotificacionesPorCreador,
+    [id_creador]
+  );
+  return res.rows;
 };
 
+/**
+ * Obtiene todas las notificaciones recibidas por un usuario.
+ */
 const obtenerPorReceptor = async (id_receptor) => {
-  const client = await connect();
-  try {
-    const res = await client.query(queries.obtenerNotificacionesPorReceptor, [id_receptor]);
-    return res.rows;
-  } finally {
-    client.release();
-  }
+  const res = await pool.query(
+    queries.obtenerNotificacionesPorReceptor,
+    [id_receptor]
+  );
+  return res.rows;
 };
 
+/**
+ * Obtiene todas las notificaciones de todos los usuarios.
+ */
 const obtenerTodas = async () => {
-  const client = await connect();
-  try {
-    const res = await client.query(queries.obtenerTodasNotificaciones);
-    return res.rows;
-  } finally {
-    client.release();
-  }
+  const res = await pool.query(queries.obtenerTodasNotificaciones);
+  return res.rows;
 };
 
+/**
+ * Marca una notificación como leída para un receptor específico.
+ */
 const marcarComoLeida = async (id_notificacion, id_receptor) => {
-  const client = await connect();
-  try {
-    const res = await client.query(
-      queries.actualizarLeido,
-      [true, id_notificacion, id_receptor]
-    );
-    return res.rows[0];
-  } finally {
-    client.release();
-  }
+  const res = await pool.query(
+    queries.actualizarLeido,
+    [true, id_notificacion, id_receptor]
+  );
+  return res.rows[0];
 };
 
+/**
+ * Elimina todas las notificaciones de un receptor.
+ */
 const eliminarNotificacionesPorReceptor = async (idReceptor) => {
-  const client = await connect();
   try {
-    const res = await client.query(queries.eliminarNotificacionesPorReceptor, [idReceptor]);
+    const res = await pool.query(
+      queries.eliminarNotificacionesPorReceptor,
+      [idReceptor]
+    );
     return res.rowCount;
   } catch (error) {
-    console.log('Error en eliminarNotificacionesPorReceptor:', error);
-  }finally {
-    client.release();
+    console.error('Error en eliminarNotificacionesPorReceptor:', error);
+    throw error;
   }
 };
-
 
 module.exports = {
   crearUnaNotificacion, 

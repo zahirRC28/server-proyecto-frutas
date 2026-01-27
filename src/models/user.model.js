@@ -1,289 +1,142 @@
-const connect = require('../configs/dbConnect');
-const queries = require("./Queries/queriesUser");
+const pool = require('../configs/dbConnect');
+const queries = require('./Queries/queriesUser');
 
 /**
  * Registra un nuevo usuario en la base de datos.
- * @async
- * @param {Object} userData - Datos del usuario.
- * @returns {Promise<Object>} Fila del usuario creado.
  */
-const crearUser = async({nombre, correo, contrasenia, rol, id_manager}) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.crearUsuario,[nombre, correo, contrasenia, id_manager, rol]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
+const crearUser = async ({ nombre, correo, contrasenia, rol, id_manager }) => {
+  const res = await pool.query(queries.crearUsuario, [nombre, correo, contrasenia, id_manager, rol]);
+  return res.rows[0];
 };
 
 /**
  * Actualiza la información de un usuario por su ID.
- * @async
  */
-const actualizarUsuarioId = async({nombre, correo, contrasenia, rol}, id_user) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.actualizarUsuarioById,[nombre, correo, contrasenia, rol, id_user]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
+const actualizarUsuarioId = async ({ nombre, correo, contrasenia, rol }, id_user) => {
+  const res = await pool.query(queries.actualizarUsuarioById, [nombre, correo, contrasenia, rol, id_user]);
+  return res.rows[0];
 };
 
 /**
- * Cambia el estado de un usuario a activo para permitirle el acceso al sistema.
- * @async
- * @param {number|string} id_user - ID único del usuario.
- * @returns {Promise<Object>} Registro del usuario actualizado.
+ * Activa un usuario.
  */
-const activarUser = async(id_user) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.activarUser,[id_user]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
+const activarUser = async (id_user) => {
+  const res = await pool.query(queries.activarUser, [id_user]);
+  return res.rows[0];
 };
 
 /**
- * Desactiva la cuenta de un usuario (bloqueo de acceso) sin eliminar sus datos.
- * @async
- * @param {number|string} id_user - ID único del usuario.
- * @returns {Promise<Object>} Registro del usuario actualizado.
+ * Desactiva un usuario.
  */
-const desactivarUser = async(id_user)=>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.desactivarUser,[id_user]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
+const desactivarUser = async (id_user) => {
+  const res = await pool.query(queries.desactivarUser, [id_user]);
+  return res.rows[0];
 };
 
 /**
- * Elimina un usuario y sus registros relacionados mediante una transacción.
- * * @async
- * @function eliminarUserEmail
- * @param {string} correo - Correo electrónico del usuario.
- * @param {number} id_usuario - ID único para limpiar tablas relacionadas.
- * @returns {Promise<Object>} Datos del usuario eliminado.
+ * Elimina un usuario y sus registros relacionados mediante transacción.
  */
-const eliminarUserEmail = async(correo, id_usuario) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
+const eliminarUserEmail = async (correo, id_usuario) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
 
-        await cliente.query('BEGIN');
+    await client.query(queries.eliminarUserById_notificaciones, [id_usuario]);
+    const res = await client.query(queries.eliminarUserByEmail, [correo]);
 
-        // Eliminar notificaciones relacionadas (si no hay, no falla)
-        await cliente.query(queries.eliminarUserById_notificaciones, [id_usuario]);
+    await client.query('COMMIT');
 
-        // Eliminar el usuario por correo y devolver la fila eliminada
-        result = await cliente.query(queries.eliminarUserByEmail,[correo]);
+    return res.rows[0] || null;
+  } catch (error) {
+    await client.query('ROLLBACK').catch((er) => console.error('Rollback fallido', er));
+    console.error('Error en eliminarUserEmail:', error.stack || error);
+    throw error;
+  } finally {
+    client.release();
+  }
+};
 
-        await cliente.query('COMMIT');
-
-        // Devolver la fila eliminada; si no hubo fila, devolver null
-        return (result && result.rows && result.rows[0]) ? result.rows[0] : null;
-    } catch (error) {
-        if (cliente) {
-            try { await cliente.query('ROLLBACK'); } catch (er) { console.error('Rollback fallido', er); }
-        }
-        console.error('Error en eliminarUserEmail:', error.stack || error);
-        throw error;
-    } finally {
-        if (cliente) cliente.release();
-    }
-}
 /**
  * Obtiene todos los usuarios del sistema excluyendo al usuario actual.
- * @async
- * @param {number} idUser - ID del usuario que solicita la lista.
  */
-const todosUsers = async(idUser) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.todoLosUserMenosYo,[idUser]);
-        return result.rows;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
+const todosUsers = async (idUser) => {
+  const res = await pool.query(queries.todoLosUserMenosYo, [idUser]);
+  return res.rows;
 };
 
 /**
- * Recupera el catálogo completo de roles disponibles en la plataforma.
- * @async
- * @returns {Promise<Array<Object>>} Lista de roles (ej: [{id_rol: 1, nombre_rol: 'Manager'}, ...]).
+ * Recupera todos los roles disponibles.
  */
-const obtenerTodosRoles = async() =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.obetenerRoles);
-        return result.rows;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-}
+const obtenerTodosRoles = async () => {
+  const res = await pool.query(queries.obetenerRoles);
+  return res.rows;
+};
 
 /**
- * Busca un rol específico filtrando por su nombre técnico.
- * @async
- * @param {string} nombreRol - Nombre del rol a buscar.
+ * Busca un rol específico por nombre.
  */
-const obtenerRolByNombre = async(nombreRol)=>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.queRol,[nombreRol]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-}
+const obtenerRolByNombre = async (nombreRol) => {
+  const res = await pool.query(queries.queRol, [nombreRol]);
+  return res.rows[0];
+};
 
 /**
- * Busca los detalles de un rol a partir de su ID numérico.
- * @async
- * @param {number} id_rol - ID del rol.
+ * Busca un rol por ID.
  */
-const obtenerRolByid = async(id_rol)=>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.queRolID,[id_rol]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-}
+const obtenerRolByid = async (id_rol) => {
+  const res = await pool.query(queries.queRolID, [id_rol]);
+  return res.rows[0];
+};
 
 /**
- * Recupera la información completa de un perfil de usuario por su ID.
- * @async
- * @param {number|string} id_user - ID único del usuario.
+ * Busca un usuario por ID.
  */
-const buscarUserByid = async(id_user)=>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.buscarUser,[id_user]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-}
+const buscarUserByid = async (id_user) => {
+  const res = await pool.query(queries.buscarUser, [id_user]);
+  return res.rows[0];
+};
 
 /**
- * Verifica la existencia de un correo en la base de datos.
- * @async
- * @returns {Promise<Object|undefined>}
+ * Verifica si un correo existe en la BD.
  */
-const existeCorreo = async(correo)=>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.correoExiste,[correo]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }finally{
-        cliente.release();
-    }
-}
+const existeCorreo = async (correo) => {
+  const res = await pool.query(queries.correoExiste, [correo]);
+  return res.rows[0];
+};
 
 /**
- * Obtiene usuarios filtrados por el nombre de su rol (ej: 'Productor').
- * @async
+ * Obtiene usuarios filtrados por nombre de rol.
  */
-const obtenerUsuariosPorRolNombre = async(nombreRol) =>{
-    let cliente, result;
-    try {
-        cliente = await connect();
-        result = await cliente.query(queries.usuariosPorRolNombre, [nombreRol]);
-        return result.rows;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    } finally {
-        cliente.release();
-    }
-}
+const obtenerUsuariosPorRolNombre = async (nombreRol) => {
+  const res = await pool.query(queries.usuariosPorRolNombre, [nombreRol]);
+  return res.rows;
+};
 
 /**
- * Obtiene productores según el rol del solicitante:
- * - Si el solicitante es 'Manager' devuelve productores con id_manager = uid
- * - Si es 'Administrador' o 'Asesor' devuelve todos los productores
+ * Obtiene productores según el rol del solicitante.
  */
-const obtenerProductoresSegunRol = async(nombreRol, rolSolicitante, uidSolicitante) => {
-    let cliente;
-    try {
-        cliente = await connect();
-        if (rolSolicitante === 'Manager') {
-            // usamos la query específica que filtra por id_manager
-            const res = await cliente.query(queries.obtenerProductoresPorManager, [nombreRol, uidSolicitante]);
-            return res.rows;
-        } else {
-            // Administrador o Asesor: devolvemos todos los Productores
-            const res = await cliente.query(queries.usuariosPorRolNombre, [nombreRol]);
-            return res.rows;
-        }
-    } catch (error) {
-        console.log(error);
-        throw error;
-    } finally {
-        cliente.release();
-    }
+const obtenerProductoresSegunRol = async (nombreRol, rolSolicitante, uidSolicitante) => {
+  if (rolSolicitante === 'Manager') {
+    const res = await pool.query(queries.obtenerProductoresPorManager, [nombreRol, uidSolicitante]);
+    return res.rows;
+  } else {
+    const res = await pool.query(queries.usuariosPorRolNombre, [nombreRol]);
+    return res.rows;
+  }
 };
 
 module.exports = {
-    crearUser,
-    actualizarUsuarioId,
-    eliminarUserEmail,
-    todosUsers,
-    obtenerTodosRoles,
-    obtenerRolByNombre,
-    obtenerRolByid,
-    buscarUserByid,
-    existeCorreo,
-    activarUser,
-    desactivarUser,
-    obtenerUsuariosPorRolNombre,
-    obtenerProductoresSegunRol
-}
+  crearUser,
+  actualizarUsuarioId,
+  eliminarUserEmail,
+  todosUsers,
+  obtenerTodosRoles,
+  obtenerRolByNombre,
+  obtenerRolByid,
+  buscarUserByid,
+  existeCorreo,
+  activarUser,
+  desactivarUser,
+  obtenerUsuariosPorRolNombre,
+  obtenerProductoresSegunRol
+};

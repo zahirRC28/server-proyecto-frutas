@@ -1,9 +1,8 @@
-const connect = require('../configs/dbConnect');
+const pool = require('../configs/dbConnect');
 const queries = require('./Queries/queriesCultivos');
 
 /**
  * Función auxiliar para transformar strings GeoJSON de la BD en objetos JSON nativos.
- * @function parseGeom
  * @param {Object} row - Fila obtenida de la base de datos.
  * @returns {Object} Fila con la propiedad 'poligono' parseada y limpieza de campos temporales.
  */
@@ -18,108 +17,79 @@ function parseGeom(row) {
 
 /**
  * Registra un nuevo cultivo con su delimitación geográfica.
- * @async
- * @param {Object} datos - Atributos del cultivo e id_productor.
- * @param {Object} datos.poligonoGeoJSON - Objeto GeoJSON que representa el área del cultivo.
- * @returns {Promise<Object>} Registro del cultivo creado y procesado.
  */
 const crearCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON, id_productor }) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.crearCultivo, [
-      nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
-      JSON.stringify(poligonoGeoJSON), id_productor
-    ]);
-    return parseGeom(res.rows[0]);
-  } finally {
-    if (client) client.release();
-  }
+  const res = await pool.query(
+    queries.crearCultivo,
+    [
+      nombre,
+      zona_cultivo,
+      tipo_cultivo,
+      region,
+      pais,
+      sistema_riego,
+      JSON.stringify(poligonoGeoJSON),
+      id_productor
+    ]
+  );
+  return parseGeom(res.rows[0]);
 };
 
 /**
  * Recupera el listado global de cultivos.
- * @async
- * @returns {Promise<Array<Object>>} Lista de cultivos con sus geometrías parseadas.
  */
 const obtenerCultivos = async () => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.obtenerCultivos, []);
-    return res.rows.map(parseGeom);
-  } finally {
-    if (client) client.release();
-  }
+  const res = await pool.query(queries.obtenerCultivos, []);
+  return res.rows.map(parseGeom);
 };
 
 /**
- * Recupera todos los cultivos pertenecientes a un productor específico.
- * @async
- * @param {number|string} id_productor - ID del propietario de los cultivos.
+ * Recupera todos los cultivos de un productor específico.
  */
 const obtenerCultivosProductor = async (id_productor) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.obtenerCultivosProductor, [id_productor]);
-    return res.rows.map(parseGeom);
-  } finally {
-    if (client) client.release();
-  }
+  const res = await pool.query(queries.obtenerCultivosProductor, [id_productor]);
+  return res.rows.map(parseGeom);
 };
 
 /**
  * Obtiene la información detallada de un cultivo por su ID.
- * @async
- * @param {number|string} id_cultivo - ID único del cultivo.
  */
 const obtenerCultivoPorId = async (id_cultivo) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.obtenerCultivoPorId, [id_cultivo]);
-    return parseGeom(res.rows[0]);
-  } finally {
-    if (client) client.release();
-  }
+  const res = await pool.query(queries.obtenerCultivoPorId, [id_cultivo]);
+  return parseGeom(res.rows[0]);
 };
 
 /**
  * Actualiza los datos de un cultivo existente, validando la propiedad del productor.
- * @async
  */
 const actualizarCultivo = async ({ nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligonoGeoJSON }, id_cultivo, id_productor) => {
-  let client;
-  try {
-    client = await connect();
-    const pol = poligonoGeoJSON ? JSON.stringify(poligonoGeoJSON) : null;
-    console.log(pol)
-    const res = await client.query(queries.actualizarCultivo, [
-      nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego,
-      pol, id_cultivo, id_productor
-    ]);
-    return parseGeom(res.rows[0]);
-  } finally {
-    if (client) client.release();
-  }
+  const pol = poligonoGeoJSON ? JSON.stringify(poligonoGeoJSON) : null;
+  const res = await pool.query(
+    queries.actualizarCultivo,
+    [
+      nombre,
+      zona_cultivo,
+      tipo_cultivo,
+      region,
+      pais,
+      sistema_riego,
+      pol,
+      id_cultivo,
+      id_productor
+    ]
+  );
+  return parseGeom(res.rows[0]);
 };
 
 /**
  * Elimina un cultivo de la base de datos.
- * @async
- * @param {number} id_cultivo - ID del cultivo a borrar.
- * @param {number} id_productor - ID del productor (para asegurar permisos de borrado).
  */
 const eliminarCultivo = async (id_cultivo, id_productor) => {
-  let client;
-  try {
-    client = await connect();
-    const res = await client.query(queries.eliminarCultivo, [id_cultivo, id_productor]);
-    return res.rows[0];
-  } finally {
-    if (client) client.release();
-  }
+  const res = await pool.query(
+    queries.eliminarCultivo,
+    [id_cultivo, id_productor]
+  );
+  return res.rows[0];
 };
 
 module.exports = {

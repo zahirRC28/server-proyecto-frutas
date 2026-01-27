@@ -27,7 +27,7 @@ async function puedeEnviarMensaje(idEmisor, idReceptor, rolEmisor, rolReceptor) 
   }
 
   if (rolEmisor === 'Asesor') {
-    const confirmacion = ['Productor', 'Asesor'].includes(rolReceptor);
+    const confirmacion = ['Productor', 'Asesor', 'Manager'].includes(rolReceptor);
     if(confirmacion){
       return true;
     }
