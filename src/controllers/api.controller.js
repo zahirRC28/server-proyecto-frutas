@@ -2,181 +2,37 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
+URL_BASE_API_METO='http://18.207.240.23/'
 
-const getTemperatura = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
+//obtener mediciones en tiempo real
+const getAllMediciones = async (req, res) => {
+  try {
+        // Extraemos la variable de la URL
+        const { variable } = req.params; 
         const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
+
+        // Lista de variables permitidas para evitar llamadas a URLs inexistentes
+        const variablesValidas = [
+            'temperatura', 'humedad_relativa', 'humedad_suelo', 
+            'precipitacion', 'viento_velocidad', 'viento_direccion', 'evapotranspiracion'
+        ];
+
+        if (!variablesValidas.includes(variable)) {
+            return res.status(400).json({
+                ok: false,
+                msg: `La variable '${variable}' no es válida.`
+            });
         }
-        const info = await conectar(`http://18.207.240.23/temperatura`, 'POST', datos);
-        console.log(info);
+
+        const datos = { parcela_id, lat, lon };
+        
+        // Construimos la URL dinámicamente
+        const url = `${URL_BASE_API_METO}${variable}`;
+        const info = await conectar(url, 'POST', datos);
 
         return res.status(200).json({
             ok: true,
-            msg: 'Temperatura (en Grados Celsius) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getHumedadRelativa = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/humedad_relativa`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Humedad relativa (%) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getHumedadSuelo = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/humedad_suelo`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Humedad del suelo (en metros cúbicos) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getPrecipitacion = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/precipitacion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Precipitación (mm) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getVientoVelocidad = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/viento_velocidad`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Velocidad del viento (km/h) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getVientoDireccion = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/viento_direccion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Dirección del viento (en grados geográficos) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getEvapotranspiracion = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/evapotranspiracion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Evapotranspiracion (mm) obtenida correctamente',
+            msg: `${variable} obtenida correctamente`,
             data: info
         });
 
@@ -486,13 +342,7 @@ const chatAsistente = async (req, res) => {
 
 
 module.exports = {
-    getTemperatura,
-    getHumedadRelativa,
-    getHumedadSuelo,
-    getPrecipitacion,
-    getVientoVelocidad,
-    getVientoDireccion,
-    getEvapotranspiracion,
+    getAllMediciones,
     getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
