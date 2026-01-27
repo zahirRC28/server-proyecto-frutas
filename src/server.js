@@ -1,7 +1,7 @@
 const http = require('http');
 const { Server } = require('socket.io');
 const app = require('./app');
-
+const { setIO } = require('./socket/io');
 const port = process.env.PORT || 3005;
 
 const server = http.createServer(app);
@@ -13,6 +13,7 @@ const io = new Server(server, {
     }
 });
 
+setIO(io);
 require('./socket/socket')(io);
 
 server.listen(port, () => {

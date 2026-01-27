@@ -8,6 +8,7 @@ const {
     cambiarPrioridadIncidencia,
     deleteIncidencia } = require('../models/incidencias.model');
 
+const { notificarManagerYAsesores } = require('../helpers/notificaciones.helper.js');
 /**
  * Registra una nueva incidencia en el sistema.(Prodcutor)
  * @async
@@ -25,6 +26,14 @@ const crearNuevaIncidencia = async (req, res) => {
             tipo,
             id_cultivo,
             id_productor
+        });
+        await notificarManagerYAsesores({
+            tipo: tipo,
+            titulo: 'Nueva incidencia creada',
+            mensaje: titulo,
+            id_creador: id_productor,
+            entidad_tipo: 'incidencia',
+            entidad_id: nuevaIncidencia.id_incidencia
         });
 
         res.status(201).json({ // estado created

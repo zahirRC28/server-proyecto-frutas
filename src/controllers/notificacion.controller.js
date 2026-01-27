@@ -3,7 +3,8 @@ const {
   obtenerPorCreador, 
   obtenerPorReceptor, 
   obtenerTodas, 
-  marcarComoLeida} = require('../models/notificacion.model');
+  marcarComoLeida,
+  eliminarNotificacionesPorReceptor} = require('../models/notificacion.model');
 
 const crearNotificacion = async (req, res) => {
   try {
@@ -154,11 +155,23 @@ const marcarNotificacionLeida = async (req, res) => {
     });
   }
 };
+const eliminarTodasPorReceptor = async (req, res) => {
+    const idReceptor = req.params.id;
+
+    try {
+        await eliminarNotificacionesPorReceptor(idReceptor);
+        return res.status(200).json({ msg: "Todas las notificaciones eliminadas" });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ msg: "Error eliminando notificaciones" });
+    }
+};
 
 module.exports = { 
   crearNotificacion, 
   obtenerNotificacionesPorCreador,
   obtenerNotificacionesPorReceptor, 
   obtenerNotificacionesTodas, 
-  marcarNotificacionLeida 
+  marcarNotificacionLeida,
+  eliminarTodasPorReceptor
 };

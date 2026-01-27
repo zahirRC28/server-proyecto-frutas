@@ -10,7 +10,8 @@ const {
   obtenerNotificacionesPorCreador, 
   obtenerNotificacionesPorReceptor, 
   obtenerNotificacionesTodas, 
-  marcarNotificacionLeida } = require("../controllers/notificacion.controller");
+  marcarNotificacionLeida,
+  eliminarTodasPorReceptor } = require("../controllers/notificacion.controller");
 
 router.post(
   '/crear',
@@ -58,6 +59,13 @@ router.put(
   [ verificarRol(['Productor','Administrador', 'Manager', 'Asesor']) ],
   checksValidaciones,
   marcarNotificacionLeida
+);
+
+router.delete(
+  '/por-receptor/:id',
+  [ verificarRol(['Productor','Administrador', 'Manager', 'Asesor']) ],
+  checksValidaciones,
+  eliminarTodasPorReceptor
 );
 
 

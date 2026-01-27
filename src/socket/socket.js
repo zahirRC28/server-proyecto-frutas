@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const usuariosConectados = require('./usuariosConectados');
 const {
   insertarMensaje,
   conversacionHabilitada,
@@ -6,6 +7,7 @@ const {
   rolUsuario
 } = require('../models/chat.model');
 const puedeEnviarMensaje = require('./rules');
+const { crearUnaNotificacion } = require('../models/notificacion.model');
 
 module.exports = (io) => {
 
@@ -26,6 +28,11 @@ module.exports = (io) => {
 
   //Conexión
   io.on('connection', (socket) => {
+    const userId = socket.user.uid;
+
+    // ✅ REGISTRAR USUARIO ONLINE
+    usuariosConectados.set(userId, socket.id);
+
     console.log('🟢 Usuario conectado:', socket.user.uid);
 
     //Entrar en conversación
@@ -78,6 +85,23 @@ module.exports = (io) => {
 
         // Emitir mensaje
         io.to(`conv_${idConversacion}`).emit('new_message', mensaje);
+
+        // 3️⃣ CREAR NOTIFICACIÓN
+        const notificacion = await crearUnaNotificacion({
+          tipo: 'mensaje',
+          titulo: 'Nuevo mensaje',
+          mensaje: contenido,
+          id_creador: idEmisor,
+          id_receptor: idReceptor,
+          entidad_tipo: 'mensaje',
+          entidad_id: mensaje.id_mensaje
+        });
+        // 4️⃣ EMITIR NOTIFICACIÓN SI ESTÁ ONLINE
+        const socketReceptor = usuariosConectados.get(idReceptor);
+        if (socketReceptor) {
+          io.to(socketReceptor).emit('new_notification', notificacion);
+        }
+
       } catch (error) {
         console.error('Error send_message:', error);
         socket.emit('error', { msg: 'Error enviando mensaje' });
@@ -85,6 +109,7 @@ module.exports = (io) => {
     });
     // Desconexión
     socket.on('disconnect', () => {
+      usuariosConectados.delete(userId);
       console.log('🔴 Usuario desconectado:', socket.user.uid);
     });
   });

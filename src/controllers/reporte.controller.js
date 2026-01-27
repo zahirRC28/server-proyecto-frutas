@@ -7,7 +7,7 @@ const {
   obtenerReportePorId,
   obtenerTodosReportes
 } = require('../models/reporte.model');
-
+const { notificarManagerYAsesores } = require('../helpers/notificaciones.helper.js');
 const { obtenerCultivoPorId } = require('../models/cultivos.model');
 
 const crearUnReporte = async (req, res) => {
@@ -24,6 +24,16 @@ const crearUnReporte = async (req, res) => {
     }
 
     const rep = await crearReporte({ id_incidencia, titulo, descripcion, id_productor, id_cultivo });
+    
+    await notificarManagerYAsesores({
+      tipo: 'reporte',
+      titulo: 'Nuevo reporte creado',
+      mensaje: titulo,
+      id_creador: id_productor,
+      entidad_tipo: 'reporte',
+      entidad_id: rep.id_reporte
+    });
+    
     return res.status(201).json({ ok: true, report: rep });
   } catch (error) {
     console.error(error);

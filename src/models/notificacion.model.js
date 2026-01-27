@@ -2,22 +2,24 @@ const connect = require('../configs/dbConnect');
 const queries = require('./Queries/queriesNotificacion');
 
 
-const crearUnaNotificacion = async ({ 
-  tipo, 
-  titulo, 
-  mensaje, 
-  leido = false, 
-  id_creador, 
-  id_receptor 
+const crearUnaNotificacion = async ({
+  tipo,
+  titulo,
+  mensaje,
+  leido = false,
+  id_creador,
+  id_receptor,
+  entidad_tipo = null,
+  entidad_id = null
 }) => {
   const client = await connect();
   try {
-    const params = [tipo, titulo, mensaje, leido, id_creador, id_receptor];
-    const res = await client.query(queries.crearNotificacion_con_now, params);
+    const res = await client.query(
+      queries.crearNotificacion_con_now,
+      [tipo, titulo, mensaje, leido, id_creador, id_receptor, entidad_tipo, entidad_id]
+    );
     return res.rows[0];
-
   } finally {
-    
     client.release();
   }
 };
@@ -66,11 +68,24 @@ const marcarComoLeida = async (id_notificacion, id_receptor) => {
   }
 };
 
+const eliminarNotificacionesPorReceptor = async (idReceptor) => {
+  const client = await connect();
+  try {
+    const res = await client.query(queries.eliminarNotificacionesPorReceptor, [idReceptor]);
+    return res.rowCount;
+  } catch (error) {
+    console.log('Error en eliminarNotificacionesPorReceptor:', error);
+  }finally {
+    client.release();
+  }
+};
+
 
 module.exports = {
   crearUnaNotificacion, 
   obtenerPorCreador, 
   obtenerPorReceptor, 
   obtenerTodas, 
-  marcarComoLeida
+  marcarComoLeida,
+  eliminarNotificacionesPorReceptor
 };
