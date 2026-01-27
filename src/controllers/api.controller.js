@@ -221,7 +221,9 @@ const getHistoricoPorFechas = async (req, res) => {
 };
 
 const getAlertaPlagas = async (req, res) => {
+    console.log(req.body);
     const { lat, lon, fruta } = req.body;
+    
     console.log('estos son los datos lat, lon y fruta', lat, lon, fruta);
     try {
         if (!lat || !lon || !fruta) {
