@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: helpers/jwt.js</title>
+    <title>JSDoc: Source: socket/rules.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: helpers/jwt.js</h1>
+    <h1 class="page-title">Source: socket/rules.js</h1>
 
     
 
@@ -26,36 +26,65 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const jwt = require("jsonwebtoken");
+            <pre class="prettyprint source linenums"><code>/**
+ * rules.js
+ * Validación de quién puede enviar mensaje a quién
+ * Incluye lógica especial para Productor -> Asesor
+ */
+const { obtenerConversacionEntreUsuarios, obtenerPrimerEmisorDeConversacion } = require('../models/chat.model');
 
 /**
- * Genera un token JWT firmado utilizando una promesa.
- * * @function JWTgenerator
- * @param {Object} payload - Información que se desea codificar en el token (ej: uid, nombre, rol).
- * @returns {Promise&lt;string>} Una promesa que resuelve al token JWT generado.
- * @throws {Error} Si ocurre un error durante la firma del token (ej: falta la clave secreta).
- * * @example
- * const token = await JWTgenerator({ uid: 1, rol: 'Manager' });
- * * @description
- * Utiliza la clave secreta definida en `process.env.SECRET_KEY`.
- * El token tiene un tiempo de expiración configurado de **2 horas**.
+ * Función principal que verifica si un emisor puede enviar mensaje a un receptor
+ * @param {number} idEmisor
+ * @param {number} idReceptor
+ * @param {string} rolEmisor
+ * @param {string} rolReceptor
+ * @returns {Promise&lt;boolean>}
  */
-const JWTgenerator = (payload) =>{
-    return new Promise((resolve, reject) =>{
-        jwt.sign(
-            payload, process.env.SECRET_KEY, { expiresIn: "2h" }, (error, token) =>{
-                if(error){
-                    console.log(error)
-                    reject(error);
-                }else{
-                    resolve(token);
-                }
-            }
-        )
-    })
+async function puedeEnviarMensaje(idEmisor, idReceptor, rolEmisor, rolReceptor) {
+  if (rolEmisor === 'Administrador') return true;
+
+  if (rolEmisor === 'Manager') {
+    //console.log(rolReceptor);
+    const confirmacion = ['Productor', 'Asesor','Manager'].includes(rolReceptor);
+    console.log(confirmacion);
+    if(confirmacion){
+      return true;
+    }
+    return false;
+  }
+
+  if (rolEmisor === 'Asesor') {
+    const confirmacion = ['Productor', 'Asesor', 'Manager'].includes(rolReceptor);
+    if(confirmacion){
+      return true;
+    }
+    return false;
+  }
+
+  if (rolEmisor === 'Productor') {
+    console.log(rolReceptor);
+    console.log(idEmisor,idReceptor);
+    // Siempre puede escribir a su Manager
+    if (rolReceptor === 'Manager') return true;
+
+    if (rolReceptor === 'Asesor') {
+      const idConversacion = await obtenerConversacionEntreUsuarios(idEmisor, idReceptor);
+      // El productor NO puede iniciar conversación
+      if (!idConversacion) return false;
+      // Si ya existe conversación, puede responder
+      return true;
+    }
+
+    return false;
+  }
+
+  return false;
 }
 
-module.exports = { JWTgenerator };</code></pre>
+module.exports = puedeEnviarMensaje;
+
+</code></pre>
         </article>
     </section>
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: helpers/jwt.js</title>
+    <title>JSDoc: Source: models/notificacion.model.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: helpers/jwt.js</h1>
+    <h1 class="page-title">Source: models/notificacion.model.js</h1>
 
     
 
@@ -26,36 +26,95 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const jwt = require("jsonwebtoken");
+            <pre class="prettyprint source linenums"><code>const pool = require('../configs/dbConnect');
+const queries = require('./Queries/queriesNotificacion');
 
 /**
- * Genera un token JWT firmado utilizando una promesa.
- * * @function JWTgenerator
- * @param {Object} payload - Información que se desea codificar en el token (ej: uid, nombre, rol).
- * @returns {Promise&lt;string>} Una promesa que resuelve al token JWT generado.
- * @throws {Error} Si ocurre un error durante la firma del token (ej: falta la clave secreta).
- * * @example
- * const token = await JWTgenerator({ uid: 1, rol: 'Manager' });
- * * @description
- * Utiliza la clave secreta definida en `process.env.SECRET_KEY`.
- * El token tiene un tiempo de expiración configurado de **2 horas**.
+ * Crea una nueva notificación.
  */
-const JWTgenerator = (payload) =>{
-    return new Promise((resolve, reject) =>{
-        jwt.sign(
-            payload, process.env.SECRET_KEY, { expiresIn: "2h" }, (error, token) =>{
-                if(error){
-                    console.log(error)
-                    reject(error);
-                }else{
-                    resolve(token);
-                }
-            }
-        )
-    })
-}
+const crearUnaNotificacion = async ({
+  tipo,
+  titulo,
+  mensaje,
+  leido = false,
+  id_creador,
+  id_receptor,
+  entidad_tipo = null,
+  entidad_id = null
+}) => {
+  const res = await pool.query(
+    queries.crearNotificacion_con_now,
+    [tipo, titulo, mensaje, leido, id_creador, id_receptor, entidad_tipo, entidad_id]
+  );
+  return res.rows[0];
+};
 
-module.exports = { JWTgenerator };</code></pre>
+/**
+ * Obtiene todas las notificaciones creadas por un usuario.
+ */
+const obtenerPorCreador = async (id_creador) => {
+  const res = await pool.query(
+    queries.obtenerNotificacionesPorCreador,
+    [id_creador]
+  );
+  return res.rows;
+};
+
+/**
+ * Obtiene todas las notificaciones recibidas por un usuario.
+ */
+const obtenerPorReceptor = async (id_receptor) => {
+  const res = await pool.query(
+    queries.obtenerNotificacionesPorReceptor,
+    [id_receptor]
+  );
+  return res.rows;
+};
+
+/**
+ * Obtiene todas las notificaciones de todos los usuarios.
+ */
+const obtenerTodas = async () => {
+  const res = await pool.query(queries.obtenerTodasNotificaciones);
+  return res.rows;
+};
+
+/**
+ * Marca una notificación como leída para un receptor específico.
+ */
+const marcarComoLeida = async (id_notificacion, id_receptor) => {
+  const res = await pool.query(
+    queries.actualizarLeido,
+    [true, id_notificacion, id_receptor]
+  );
+  return res.rows[0];
+};
+
+/**
+ * Elimina todas las notificaciones de un receptor.
+ */
+const eliminarNotificacionesPorReceptor = async (idReceptor) => {
+  try {
+    const res = await pool.query(
+      queries.eliminarNotificacionesPorReceptor,
+      [idReceptor]
+    );
+    return res.rowCount;
+  } catch (error) {
+    console.error('Error en eliminarNotificacionesPorReceptor:', error);
+    throw error;
+  }
+};
+
+module.exports = {
+  crearUnaNotificacion, 
+  obtenerPorCreador, 
+  obtenerPorReceptor, 
+  obtenerTodas, 
+  marcarComoLeida,
+  eliminarNotificacionesPorReceptor
+};
+</code></pre>
         </article>
     </section>
 
