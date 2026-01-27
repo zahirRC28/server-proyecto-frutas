@@ -1,22 +1,7 @@
 const queries = {
     crearUsuario: `
-        INSERT INTO usuarios (nombre_completo, correo, contrasenia_hash, id_manager, fecha_ingreso, id_rol)
-        SELECT
-        $1,
-        $2,
-        $3,
-        $4,
-        CURRENT_DATE,
-        r.id_rol
-        FROM roles r
-        WHERE r.nombre = $5
-        RETURNING *;
-    `,
-    actualizarUsuarioById: `
-        UPDATE usuarios
-        SET nombre_completo = $1, correo = $2, contrasenia_hash = $3, id_rol = (SELECT id_rol FROM roles WHERE nombre = $4)
-        WHERE id_usuario = $5
-        RETURNING *;
+        INSERT INTO usuarios(nombre_completo, correo, contrasenia_hash, id_manager, codigo_verificacion, fecha_ingreso,  id_rol, primer_login)
+        VALUES($1,$2,$3,$4,$5,CURRENT_TIMESTAMP,(SELECT id_rol FROM roles WHERE nombre=$6),$7) RETURNING *;
     `,
     todoLosUserMenosYo: `
         SELECT u.id_usuario, u.nombre_completo, u.correo, r.nombre AS rol_nombre, u.fecha_ingreso, u.activo, u.fecha_baja

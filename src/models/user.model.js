@@ -4,17 +4,60 @@ const queries = require('./Queries/queriesUser');
 /**
  * Registra un nuevo usuario en la base de datos.
  */
-const crearUser = async ({ nombre, correo, contrasenia, rol, id_manager }) => {
-  const res = await pool.query(queries.crearUsuario, [nombre, correo, contrasenia, id_manager, rol]);
+const crearUser = async ({ nombre, correo, contrasenia, rol, id_manager, codigo_verificacion, primer_login }) => {
+  const res = await pool.query(queries.crearUsuario, [nombre, correo, contrasenia, id_manager, codigo_verificacion, rol, primer_login]);
   return res.rows[0];
 };
 
 /**
  * Actualiza la información de un usuario por su ID.
  */
-const actualizarUsuarioId = async ({ nombre, correo, contrasenia, rol }, id_user) => {
-  const res = await pool.query(queries.actualizarUsuarioById, [nombre, correo, contrasenia, rol, id_user]);
-  return res.rows[0];
+const actualizarUsuarioId = async ({ nombre, correo, contrasenia, rol, primer_login, codigo_verificacion, correo_verificado }, id_user) => {
+    const params = [];
+    let query = 'UPDATE usuarios SET ';
+    let setClauses = [];
+    let i = 1;
+
+    if (nombre !== undefined) {
+        setClauses.push(`nombre_completo=$${i}`);
+        params.push(nombre);
+        i++;
+    }
+    if (correo !== undefined) {
+        setClauses.push(`correo=$${i}`);
+        params.push(correo);
+        i++;
+    }
+    if (contrasenia !== undefined) {
+        setClauses.push(`contrasenia_hash=$${i}`);
+        params.push(contrasenia);
+        i++;
+    }
+    if (rol !== undefined) {
+        setClauses.push(`id_rol=(SELECT id_rol FROM roles WHERE nombre=$${i})`);
+        params.push(rol);
+        i++;
+    }
+    if (primer_login !== undefined) {
+        setClauses.push(`primer_login=$${i}`);
+        params.push(primer_login);
+        i++;
+    }
+    if (codigo_verificacion !== undefined) {
+        setClauses.push(`codigo_verificacion=$${i}`);
+        params.push(codigo_verificacion);
+        i++;
+    }
+    if (correo_verificado !== undefined) {
+        setClauses.push(`correo_verificado=$${i}`);
+        params.push(correo_verificado);
+        i++;
+    }
+    query += setClauses.join(', ') + ` WHERE id_usuario=$${i} RETURNING *`;
+    params.push(id_user);
+
+    const res = await pool.query(query, params);
+    return res.rows[0];
 };
 
 /**

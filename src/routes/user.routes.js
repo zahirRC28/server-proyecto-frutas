@@ -9,7 +9,8 @@ const {
   eliminarUser,
   cambiarEstadoUser,
   usuariosPorRol,
-  listarProductores
+  listarProductores,
+  cambiarContraseniaPrimerLogin
 } = require('../controllers/user.controller');
 const { verificarRol } = require("../middlewares/verificarRol");
 const { verificarJWT } = require('../middlewares/validarJWT');
@@ -31,9 +32,6 @@ router.post('/crear', [
         .normalizeEmail()
         .isEmail().withMessage("Escriba un correo electrónico válido.").bail()
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
-    , check('contrasenia')
-        .notEmpty().withMessage("Tienes que escribir una contraseña").bail()
-        .isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
     , check('id_manager')
         .optional({ checkFalsy: true })
         .bail()
@@ -66,7 +64,7 @@ router.put('/actualizar/:id', [
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
     , check('contrasenia')
         .optional({ checkFalsy: true })
-        .isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
+        .isStrongPassword({ minLength: 6 }).bail()
     , checksValidaciones
 ], actualizarUsuario);
 
@@ -141,5 +139,10 @@ router.post('/porUserRol', [
 router.get('/productores', [
     verificarRol(['Administrador', 'Manager', 'Asesor']),
 ], listarProductores);
+
+router.put('/cambiarContrasenia', verificarJWT, [
+  check('nuevaContrasenia').notEmpty().withMessage('Se requiere la nueva contraseña').bail().isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail(),
+  checksValidaciones
+], cambiarContraseniaPrimerLogin);
 
 module.exports = router;

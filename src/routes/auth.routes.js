@@ -14,7 +14,7 @@ router.post('/login',[
         .isLength({ min: 5, max: 50 }).withMessage("El correo no tiene logitud suficiente").bail()
     ,check('contrasenia')
         .notEmpty().withMessage("Tienes que escribir una contraseña").bail()
-        .isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
+        //.isStrongPassword({ minLength: 6 }).withMessage("La contraseña debe tener entre 6 y 10 caracteres, contener por lo menos una minúscula, una mayúscula, un número y un símbolo.").bail()
     ,checksValidaciones
 ],login);
 

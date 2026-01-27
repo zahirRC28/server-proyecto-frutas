@@ -34,6 +34,7 @@ const login = async(req, res) =>{
                 msg: "El usuario no esta activo."
             });
         }
+
         //comprobamos que sea la misma contraseña
         const contraBien = await bycrypt.compare(contrasenia, usuario.contrasenia_hash);
         //console.log(contraBien);
@@ -57,12 +58,17 @@ const login = async(req, res) =>{
             correo: usuario.correo,
             rol: usuario.rol_nombre
         }
+        //console.log(usuario);
+        // Retornar si es primer login
         return res.status(200).json({
             ok: true,
-            msg: `Login exitoso, bienvenido ${user.nombre}`,
-            user: user,
-            token: token
-        })
+            msg: usuario.primer_login 
+                ? "Primer login: se requiere cambiar contraseña"
+                : `Login exitoso, bienvenido ${user.nombre}`,
+            user,
+            token,
+            primer_login: usuario.primer_login
+        });
 
     } catch (error) {
         console.error(error);

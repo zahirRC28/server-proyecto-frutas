@@ -3,6 +3,7 @@ const {existeCorreo, obtenerRolByNombre, crearUser, buscarUserByid,
     actualizarUsuarioId, obtenerTodosRoles, todosUsers, eliminarUserEmail,
     activarUser, desactivarUser, obtenerUsuariosPorRolNombre, obtenerProductoresSegunRol
 } = require('../models/user.model');
+const { enviarCorreoVerificacion, enviarCorreo } = require('../helpers/email.js');
 
 /**
  * Registra un nuevo usuario en el sistema con contraseña encriptada.
@@ -32,17 +33,37 @@ const crearUsuario = async(req, res) =>{
             });
         }
         //ahora encriptamos la contraseña
-        const salt = bcrypt.genSaltSync();
-        const contraseniaEncrip = bcrypt.hashSync(contrasenia, salt);
+        // const salt = bcrypt.genSaltSync();
+        // const contraseniaEncrip = bcrypt.hashSync(contrasenia, salt);
         //console.log(contraseniaEncrip);
+        // Generar contraseña temporal
+        const contrasenaTemporal = Math.random().toString(36).slice(-8);
+        const salt = bcrypt.genSaltSync();
+        const contraseniaEncrip = bcrypt.hashSync(contrasenaTemporal, salt);
+
+        const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+
         const values = {
             nombre,
             correo,
             contrasenia:contraseniaEncrip,
             rol,
-            id_manager
+            id_manager,
+            codigo_verificacion: codigo,
+            primer_login: true
         }
-        console.log(values);
+        //console.log(contrasenaTemporal);
+        await enviarCorreo({
+            correo: correo,
+            asunto: 'Verificación de cuenta',
+            textoPlano: `Bienvenido a Mi App!\n\nTu código de verificación: ${codigo}\nTu contraseña temporal: ${contrasenaTemporal}\n\nUsa esta contraseña para iniciar sesión y cámbiala en tu primer acceso.`,
+            textoHTML: `<p>Bienvenido a Mi App!</p>
+                    <p>Tu código de verificación: <b>${codigo}</b></p>
+                    <p>Tu contraseña temporal: <b>${contrasenaTemporal}</b></p>
+                    <p>Usa esta contraseña para iniciar sesión y cámbiala en tu primer acceso.</p>`
+        });
+
+        //console.log(values);
         const data = await crearUser(values);
         //console.log(data);
 
@@ -68,41 +89,34 @@ const crearUsuario = async(req, res) =>{
  * @param {string} req.params.id - ID del usuario a actualizar.
  * @description Si se incluye una nueva contraseña, se encripta; de lo contrario, se mantiene la actual.
  */
-const actualizarUsuario = async(req, res) =>{
+const actualizarUsuario = async (req, res) => {
     const { id } = req.params;
-    const {nombre, correo, contrasenia, rol} = req.body
+    const { nombre, correo, rol } = req.body;
+
     try {
         const existe = await buscarUserByid(id);
-        if(!existe){
+        if (!existe) {
             return res.status(400).json({
                 ok: false,
                 msg: "El usuario con este id no existe"
             });
         }
-        //console.log(existe);
-        let contrasenaFinal;
-        if (contrasenia && contrasenia.trim() !== "") {
-            const salt = bcrypt.genSaltSync();
-            contrasenaFinal = bcrypt.hashSync(contrasenia, salt);
-        } else {
-            contrasenaFinal = existe.contrasenia_hash;
-        }
-        //console.log(contrasenaFinal);
+
         const datos = {
             nombre,
             correo,
-            contrasenia: contrasenaFinal,
+            contrasenia: existe.contrasenia_hash, // NO se cambia
             rol
-        }
-        const userActualizado = await actualizarUsuarioId(datos,id);
-        console.log(userActualizado);
+        };
+
+        const userActualizado = await actualizarUsuarioId(datos, id);
 
         return res.status(200).json({
             ok: true,
-            msg: "Usuario fue actualizado correctamente.",
+            msg: "Usuario actualizado correctamente.",
             usuario: userActualizado
         });
-        
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({
@@ -318,6 +332,51 @@ const listarProductores = async (req, res) => {
   }
 };
 
+const cambiarContraseniaPrimerLogin = async (req, res) => {
+    const { uid } = req.userToken;
+    const { nuevaContrasenia, codigo } = req.body;
+    //console.log(uid, nuevaContrasenia, codigo);
+    try {
+        // Obtenemos el usuario para validar el código
+        const usuario = await buscarUserByid(uid);
+        if (!usuario) {
+            return res.status(404).json({ ok: false, msg: 'Usuario no encontrado' });
+        }
+
+        // Validamos el código de verificación
+        if (usuario.codigo_verificacion !== codigo) {
+            return res.status(400).json({ ok: false, msg: 'Código de verificación inválido' });
+        }
+
+        // Validamos contraseña fuerte (opcional, si no lo haces en router)
+        if (!nuevaContrasenia || nuevaContrasenia.length < 6) {
+            return res.status(400).json({ ok: false, msg: 'La contraseña debe tener mínimo 6 caracteres' });
+        }
+
+        // Hasheamos la nueva contraseña
+        const salt = bcrypt.genSaltSync();
+        const contraseniaHash = bcrypt.hashSync(nuevaContrasenia, salt);
+
+        // Actualizamos la contraseña y marcamos primer_login como false, limpiamos código
+        await actualizarUsuarioId({ contrasenia: contraseniaHash, primer_login: false, codigo_verificacion: null, correo_verificado: true}, uid);
+
+        await enviarCorreo({
+            correo: usuario.correo,
+            asunto: 'Contraseña cambiada correctamente',
+            textoPlano: 'Tu contraseña ha sido actualizada correctamente.',
+            textoHTML: '<p>Tu contraseña ha sido <b>actualizada</b> correctamente.</p>'
+        });
+        return res.status(200).json({
+            ok: true,
+            msg: 'Contraseña actualizada correctamente, primer login completado.'
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ ok: false, msg: 'Error del servidor.' });
+    }
+};
+
 module.exports ={
     crearUsuario,
     actualizarUsuario,
@@ -327,5 +386,6 @@ module.exports ={
     todosRoles,
     cambiarEstadoUser,
     usuariosPorRol,
-    listarProductores
+    listarProductores,
+    cambiarContraseniaPrimerLogin
 }
