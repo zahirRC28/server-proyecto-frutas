@@ -1,4 +1,6 @@
 const queries = {
+
+  
   crearCultivo: `
     INSERT INTO cultivos (
   nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligono, id_productor
@@ -12,7 +14,7 @@ RETURNING *, ST_AsGeoJSON(poligono) as poligono_geojson; -- Esto hace que se dib
   `,
   obtenerCultivos: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,
-           ST_AsGeoJSON(poligono) AS poligono_geojson, created_at
+           ST_AsGeoJSON(poligono) AS poligono_geojson, created_at, id_productor
     FROM cultivos
     ORDER BY created_at DESC;
   `,
