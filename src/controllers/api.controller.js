@@ -79,8 +79,6 @@ const getHistoricoPorFechas = async (req, res) => {
 const getAlertaPlagas = async (req, res) => {
     console.log(req.body);
     const { lat, lon, fruta } = req.body;
-
-
     try {
         if (!lat || !lon || !fruta) {
             return res.status(400).json({
@@ -126,7 +124,7 @@ const getAnalisisClimatico = async (req, res) => {
         }
 
         // Construir la URL
-        const url = `http://98.82.122.18/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
+        const url = `http://34.201.98.55/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
 
         // peticion GET 
         const info = await conectar(url, 'GET');
