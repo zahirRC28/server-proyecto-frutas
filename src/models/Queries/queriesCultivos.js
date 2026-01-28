@@ -1,14 +1,14 @@
 const queries = {
   crearCultivo: `
     INSERT INTO cultivos (
-      nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligono, id_productor
-    )
-    VALUES (
-      $1, $2, $3, $4, $5, $6,
-      ST_SetSRID(ST_GeomFromGeoJSON($7::text), 4326),
-      $8
-    )
-    RETURNING *;
+  nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, poligono, id_productor
+)
+VALUES (
+  $1, $2, $3, $4, $5, $6,
+  ST_SetSRID(ST_GeomFromGeoJSON($7::text), 4326), -- Esto arregla el error del continente
+  $8
+)
+RETURNING *, ST_AsGeoJSON(poligono) as poligono_geojson; -- Esto hace que se dibuje al instante
   `,
   obtenerCultivos: `
     SELECT id_cultivo, nombre, zona_cultivo, tipo_cultivo, region, pais, sistema_riego, area_ha,

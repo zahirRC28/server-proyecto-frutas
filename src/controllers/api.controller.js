@@ -2,18 +2,18 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
-URL_BASE_API_METO='http://18.207.240.23/'
+URL_BASE_API_METO = 'http://18.207.240.23/'
 
 //obtener mediciones en tiempo real
 const getAllMediciones = async (req, res) => {
-  try {
+    try {
         // Extraemos la variable de la URL
-        const { variable } = req.params; 
+        const { variable } = req.params;
         const { parcela_id, lat, lon } = req.body;
 
         // Lista de variables permitidas para evitar llamadas a URLs inexistentes
         const variablesValidas = [
-            'temperatura', 'humedad_relativa', 'humedad_suelo', 
+            'temperatura', 'humedad_relativa', 'humedad_suelo',
             'precipitacion', 'viento_velocidad', 'viento_direccion', 'evapotranspiracion'
         ];
 
@@ -25,7 +25,7 @@ const getAllMediciones = async (req, res) => {
         }
 
         const datos = { parcela_id, lat, lon };
-        
+
         // Construimos la URL dinámicamente
         const url = `${URL_BASE_API_METO}${variable}`;
         const info = await conectar(url, 'POST', datos);
@@ -45,42 +45,10 @@ const getAllMediciones = async (req, res) => {
     }
 };
 
-// Obtener histórico = conjunto de datos entre 2 fechas
-const getHistoricoPorFechas = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon, inicio, fin } = req.body;
-
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon,
-            "inicio": inicio,
-            "fin": fin,
-            "variables": ["temperatura", "precipitacion", "humedad_suelo", "evapotranspiracion"]
-        };
-
-        const info = await conectar(`http://34.201.98.55/cargar_historico`, 'POST', datos);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Histórico de datos obtenido correctamente',
-            data: info.historico // Esto ya trae el array con todos los datos mezclados 
-        });
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
 
 const getAlertaPlagas = async (req, res) => {
     console.log(req.body);
     const { lat, lon, fruta } = req.body;
-    
-    console.log('estos son los datos lat, lon y fruta', lat, lon, fruta);
     try {
         if (!lat || !lon || !fruta) {
             return res.status(400).json({
@@ -117,16 +85,17 @@ const getAnalisisClimatico = async (req, res) => {
         // Obtener los parámetros de la URL
         // lat y lon son obligatorios, days es opcional (7 por defecto) 
         const { lat, lon, days } = req.query;
-
+        
         if (!lat || !lon) {
             return res.status(400).json({
                 ok: false,
                 msg: 'Faltan parámetros lat o lon'
             });
         }
-
+        
+        console.log(lat, lon, days)
         // Construir la URL
-        const url = `http://98.82.122.18/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
+        const url = `http://34.201.98.55/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
 
         // peticion GET 
         const info = await conectar(url, 'GET');
@@ -321,12 +290,8 @@ const chatAsistente = async (req, res) => {
             message
         });
 
-        if (data.error || data.response?.includes('Rate limit reached')) {
-            return res.status(200).json({ // Enviamos 200 para que el front lo maneje como mensaje
-                ok: false, 
-                msg: "Lo siento, el asistente no está dispinible ahora mismo. Por favor, inténtalo de nuevo en unos minutos."
-            });
-        }
+        if (data.error) throw new Error(data.message);
+
         return res.status(200).json({
             ok: true,
             msg: 'Chatbot conectado correctamente',
@@ -340,17 +305,56 @@ const chatAsistente = async (req, res) => {
     }
 };
 
+// src/controllers/historico.controller.js
+
+const obtenerHistoricoProxy = async (req, res) => {
+    try {
+        // Recibimos lat y lon desde frontend
+        const { lat, lon } = req.query;
+
+        // Validación básica
+        if (!lat || !lon) {
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Faltan las coordenadas (lat, lon)"
+            });
+        }
+
+        const respuestaExterna = await fetch(`https://cultitech-5years.onrender.com/5years_history?lat=${lat}&lon=${lon}`);
+
+        if (!respuestaExterna.ok) {
+            throw new Error(`API Externa respondió con estado: ${respuestaExterna.status}`);
+        }
+
+        const datosExternos = await respuestaExterna.json();
+
+        return res.status(200).json({
+            ok: true,
+            data: datosExternos
+        });
+
+    } catch (error) {
+        console.error(" [PROXY ERROR]:", error.message);
+
+        return res.status(500).json({
+            ok: false,
+            mensaje: "Error al conectar con el servidor de histórico",
+            data: []
+        });
+    }
+};
+
 
 module.exports = {
     getAllMediciones,
-    getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
     getAlertaMeteorologica,
     identificarImagenPlaga,
     identificarImagenPlanta,
     getInfoSuelo,
-    chatAsistente
+    chatAsistente,
+    obtenerHistoricoProxy
 };
 
 

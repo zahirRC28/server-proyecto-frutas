@@ -49,6 +49,7 @@ app.use('/api/v1/incidencia', require('./routes/incidencias.routes'));
 app.use('/api/v1/notificacion', require('./routes/notificacion.routes'));
 app.use('/api/v1/multimedia', require('./routes/multimedia.routes'));
 app.use('/api/v1/apis', require('./routes/api.routes'));
-app.use('/api/v1/chat', require('./routes/chat.routes')); 
+app.use('/api/v1/chat', require('./routes/chat.routes'));
+app.use('/api/v1/pdf', require('./routes/pdf.routes'));
 
 module.exports = app;
