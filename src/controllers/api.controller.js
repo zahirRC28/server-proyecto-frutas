@@ -2,7 +2,7 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
-URL_BASE_API_METO = 'http://18.207.240.23/'
+URL_BASE_API_METEO = 'http://34.201.98.55/'
 
 //obtener mediciones en tiempo real
 const getAllMediciones = async (req, res) => {
@@ -10,7 +10,7 @@ const getAllMediciones = async (req, res) => {
         const { variable } = req.params; // Puede ser 'temperatura', 'humedad'... o 'general'
         const { parcela_id, lat, lon } = req.body;
 
-        // 1. Validación básica de parámetros del body (igual que en plagas)
+        // 1. Validación básica de parámetros del body (igul que en plagas)
         if (!lat || !lon) {
             return res.status(400).json({
                 ok: false,
@@ -31,7 +31,7 @@ const getAllMediciones = async (req, res) => {
             
             // Creamos un array de promesas (peticiones en paralelo a la API externa)
             const promesas = variablesList.map(v => {
-                const url = `${URL_BASE_API_METO}${v}`;
+                const url = `${URL_BASE_API_METEO}${v}`;
                 // Importante: retornamos una promesa que incluye el nombre de la variable para identificarla luego
                 return conectar(url, 'POST', datosBody).then(data => ({ key: v, data }));
             });
@@ -60,7 +60,7 @@ const getAllMediciones = async (req, res) => {
             });
         }
 
-        const url = `${URL_BASE_API_METO}${variable}`;
+        const url = `${URL_BASE_API_METEO}${variable}`;
         const info = await conectar(url, 'POST', datosBody);
 
         return res.status(200).json({

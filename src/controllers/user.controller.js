@@ -12,7 +12,7 @@ const { enviarCorreoVerificacion, enviarCorreo } = require('../helpers/email.js'
  * @returns {Promise<void>} JSON con el usuario creado o error de validación (email duplicado/rol inexistente).
  */
 const crearUsuario = async(req, res) =>{
-    const {nombre, correo, contrasenia, rol, id_manager} = req.body
+    const {nombre, correo, rol, id_manager} = req.body
     try {
         //comprobamos que el correo no este registrado
         const existe = await existeCorreo(correo);
@@ -52,6 +52,7 @@ const crearUsuario = async(req, res) =>{
             codigo_verificacion: codigo,
             primer_login: true
         }
+        //console.log(values);
         //console.log(contrasenaTemporal);
         await enviarCorreo({
             correo: correo,
