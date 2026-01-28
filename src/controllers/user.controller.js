@@ -54,19 +54,23 @@ const crearUsuario = async(req, res) =>{
         }
         //console.log(values);
         //console.log(contrasenaTemporal);
-        await enviarCorreo({
-            correo: correo,
-            asunto: 'Verificación de cuenta',
-            textoPlano: `Bienvenido a Mi App!\n\nTu código de verificación: ${codigo}\nTu contraseña temporal: ${contrasenaTemporal}\n\nUsa esta contraseña para iniciar sesión y cámbiala en tu primer acceso.`,
-            textoHTML: `<p>Bienvenido a Mi App!</p>
+        
+        const data = await crearUser(values);
+        //console.log(data);
+
+        try {   
+            await enviarCorreo({
+                correo: correo,
+                asunto: 'Verificación de cuenta',
+                textoPlano: `Bienvenido a Mi App!\n\nTu código de verificación: ${codigo}\nTu contraseña temporal: ${contrasenaTemporal}\n\nUsa esta contraseña para iniciar sesión y cámbiala en tu primer acceso.`,
+                textoHTML: `<p>Bienvenido a Mi App!</p>
                     <p>Tu código de verificación: <b>${codigo}</b></p>
                     <p>Tu contraseña temporal: <b>${contrasenaTemporal}</b></p>
                     <p>Usa esta contraseña para iniciar sesión y cámbiala en tu primer acceso.</p>`
-        });
-
-        //console.log(values);
-        const data = await crearUser(values);
-        //console.log(data);
+            });
+        } catch (error) {
+            console.error('EMAIL FALLÓ:', error.message);
+        }
 
         return res.status(201).json({
             ok: true,
