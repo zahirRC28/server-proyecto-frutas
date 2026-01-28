@@ -2,33 +2,66 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
-URL_BASE_API_METO = 'http://18.207.240.23/'
+URL_BASE_API_METEO = 'http://34.201.98.55/'
 
 //obtener mediciones en tiempo real
 const getAllMediciones = async (req, res) => {
     try {
-        // Extraemos la variable de la URL
-        const { variable } = req.params;
+        const { variable } = req.params; // Puede ser 'temperatura', 'humedad'... o 'general'
         const { parcela_id, lat, lon } = req.body;
 
-        // Lista de variables permitidas para evitar llamadas a URLs inexistentes
-        const variablesValidas = [
+        // 1. Validación básica de parámetros del body (igual que en plagas)
+        if (!lat || !lon) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Faltan parámetros: lat y lon son obligatorios.'
+            });
+        }
+
+        const datosBody = { parcela_id, lat, lon };
+        
+        // Las 7 variables que te interesan
+        const variablesList = [
             'temperatura', 'humedad_relativa', 'humedad_suelo',
             'precipitacion', 'viento_velocidad', 'viento_direccion', 'evapotranspiracion'
         ];
 
-        if (!variablesValidas.includes(variable)) {
+        // --- CASO A: Quieres TODO de golpe (estilo Plagas) ---
+        if (variable === 'general' || variable === 'todo') {
+            
+            // Creamos un array de promesas (peticiones en paralelo a la API externa)
+            const promesas = variablesList.map(v => {
+                const url = `${URL_BASE_API_METEO}${v}`;
+                // Importante: retornamos una promesa que incluye el nombre de la variable para identificarla luego
+                return conectar(url, 'POST', datosBody).then(data => ({ key: v, data }));
+            });
+
+            // Esperamos a que todas respondan
+            const resultados = await Promise.all(promesas);
+
+            // Convertimos el array de resultados en un objeto limpio: { temperatura: ..., humedad: ... }
+            const dataConsolidada = {};
+            resultados.forEach(item => {
+                dataConsolidada[item.key] = item.data;
+            });
+
+            return res.status(200).json({
+                ok: true,
+                msg: 'Resumen completo de todas las mediciones',
+                data: dataConsolidada // <--- Aquí van tus 7 datos juntos
+            });
+        }
+
+        // --- CASO B: Pides una sola variable específica (Lógica original) ---
+        if (!variablesList.includes(variable)) {
             return res.status(400).json({
                 ok: false,
                 msg: `La variable '${variable}' no es válida.`
             });
         }
 
-        const datos = { parcela_id, lat, lon };
-
-        // Construimos la URL dinámicamente
-        const url = `${URL_BASE_API_METO}${variable}`;
-        const info = await conectar(url, 'POST', datos);
+        const url = `${URL_BASE_API_METEO}${variable}`;
+        const info = await conectar(url, 'POST', datosBody);
 
         return res.status(200).json({
             ok: true,
@@ -37,10 +70,10 @@ const getAllMediciones = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Error en getAllMediciones:", error);
         res.status(500).json({
             ok: false,
-            msg: "Error interno del servidor"
+            msg: "Error interno del servidor al obtener mediciones"
         });
     }
 };
@@ -93,13 +126,12 @@ const getAnalisisClimatico = async (req, res) => {
             });
         }
         
-        console.log(lat, lon, days)
+        
         // Construir la URL
         const url = `http://34.201.98.55/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
 
         // peticion GET 
         const info = await conectar(url, 'GET');
-        console.log("-----Respuesta de la API externa:-----", info);
 
         return res.status(200).json({
             ok: true,
