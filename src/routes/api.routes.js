@@ -18,8 +18,8 @@ const {
     obtenerHistoricoProxy
 } = require('../controllers/api.controller')
 
-/* router.post('/mediciones/:variable', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAllMediciones);
- */router.post('/historico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getHistoricoPorFechas);
+router.post('/mediciones/:variable', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAllMediciones);
+router.post('/historico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getHistoricoPorFechas);
 router.get('/alerta-plagas', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAlertaPlagas);
 router.get('/analisis-climatico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAnalisisClimatico);
 router.post('/alerta-meteo', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAlertaMeteorologica);
@@ -27,7 +27,6 @@ router.post('/identificar-plaga', [verificarRol(['Asesor', 'Productor', 'Manager
 router.post('/identificar-planta', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], upload.single('image'), identificarImagenPlanta);
 router.post('/info-suelo', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getInfoSuelo);
 router.post('/chatbot', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], chatAsistente);
-console.log("Mi funcion es:", obtenerHistoricoProxy);
 router.get('/historico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], obtenerHistoricoProxy);
 
 module.exports = router;

@@ -2,181 +2,37 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
+URL_BASE_API_METO = 'http://18.207.240.23/'
 
-const getTemperatura = async (req, res) => {
+//obtener mediciones en tiempo real
+const getAllMediciones = async (req, res) => {
     try {
-        //filtrar por qué cultivo queremos ver datos
+        // Extraemos la variable de la URL
+        const { variable } = req.params;
         const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
+
+        // Lista de variables permitidas para evitar llamadas a URLs inexistentes
+        const variablesValidas = [
+            'temperatura', 'humedad_relativa', 'humedad_suelo',
+            'precipitacion', 'viento_velocidad', 'viento_direccion', 'evapotranspiracion'
+        ];
+
+        if (!variablesValidas.includes(variable)) {
+            return res.status(400).json({
+                ok: false,
+                msg: `La variable '${variable}' no es válida.`
+            });
         }
-        const info = await conectar(`http://18.207.240.23/temperatura`, 'POST', datos);
-        console.log(info);
+
+        const datos = { parcela_id, lat, lon };
+
+        // Construimos la URL dinámicamente
+        const url = `${URL_BASE_API_METO}${variable}`;
+        const info = await conectar(url, 'POST', datos);
 
         return res.status(200).json({
             ok: true,
-            msg: 'Temperatura (en Grados Celsius) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getHumedadRelativa = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/humedad_relativa`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Humedad relativa (%) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getHumedadSuelo = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/humedad_suelo`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Humedad del suelo (en metros cúbicos) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getPrecipitacion = async (req, res) => {
-    try {
-        //filtrar por qué cultivo queremos ver datos
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/precipitacion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Precipitación (mm) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getVientoVelocidad = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/viento_velocidad`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Velocidad del viento (km/h) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getVientoDireccion = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/viento_direccion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Dirección del viento (en grados geográficos) obtenida correctamente',
-            data: info
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
-
-const getEvapotranspiracion = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon } = req.body;
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon
-        }
-        const info = await conectar(`http://18.207.240.23/evapotranspiracion`, 'POST', datos);
-        console.log(info);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Evapotranspiracion (mm) obtenida correctamente',
+            msg: `${variable} obtenida correctamente`,
             data: info
         });
 
@@ -223,8 +79,8 @@ const getHistoricoPorFechas = async (req, res) => {
 const getAlertaPlagas = async (req, res) => {
     console.log(req.body);
     const { lat, lon, fruta } = req.body;
-    
-   
+
+
     try {
         if (!lat || !lon || !fruta) {
             return res.status(400).json({
@@ -233,7 +89,7 @@ const getAlertaPlagas = async (req, res) => {
 
             });
         }
-     
+
         const params = new URLSearchParams({ lat, lon, fruta });
         const urlFull = `https://aanearana-deteccion-plagas.hf.space/plagas?${params.toString()}`;
         // Llamada a la función conectar
@@ -363,46 +219,46 @@ const identificarImagenPlaga = async (req, res) => {
     }
 };
 
-    const identificarImagenPlanta = async (req, res) => {
-        try {
-            // Validamos que Multer haya recibido la foto
-            if (!req.file) {
-                return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
-            }
-            const form = new FormData();
-
-            // 'image' segun la docu de la API de David
-            form.append('image', fs.createReadStream(req.file.path));
-
-            // Llamar a la nueva API
-            const urlApi = 'http://18.194.33.82/identificar';
-
-            const data = await conectar(urlApi, 'POST', form);
-
-            // Gestionar la respuesta
-            if (data.error || data.status !== 'success') {
-                return res.status(500).json({
-                    ok: false,
-                    msg: 'Error al identificar la planta',
-                    error: data.message || 'La API externa no respondió correctamente'
-                });
-            }
-
-            //Devolvemos los datos al Front
-            return res.status(200).json({
-                ok: true,
-                msg: 'Análisis de la imagen realizado con éxito',
-                nombre_cientifico: data.nombre_cientifico,
-                nombre_comun: data.nombre_comun,
-                otros_nombres: data.otros_nombres,
-                precision: data.precision
-            });
-
-        } catch (error) {
-            console.error('Error en identificarPlanta:', error);
-            res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
+const identificarImagenPlanta = async (req, res) => {
+    try {
+        // Validamos que Multer haya recibido la foto
+        if (!req.file) {
+            return res.status(400).json({ ok: false, msg: 'No se recibió ninguna imagen' });
         }
-    };
+        const form = new FormData();
+
+        // 'image' segun la docu de la API de David
+        form.append('image', fs.createReadStream(req.file.path));
+
+        // Llamar a la nueva API
+        const urlApi = 'http://18.194.33.82/identificar';
+
+        const data = await conectar(urlApi, 'POST', form);
+
+        // Gestionar la respuesta
+        if (data.error || data.status !== 'success') {
+            return res.status(500).json({
+                ok: false,
+                msg: 'Error al identificar la planta',
+                error: data.message || 'La API externa no respondió correctamente'
+            });
+        }
+
+        //Devolvemos los datos al Front
+        return res.status(200).json({
+            ok: true,
+            msg: 'Análisis de la imagen realizado con éxito',
+            nombre_cientifico: data.nombre_cientifico,
+            nombre_comun: data.nombre_comun,
+            otros_nombres: data.otros_nombres,
+            precision: data.precision
+        });
+
+    } catch (error) {
+        console.error('Error en identificarPlanta:', error);
+        res.status(500).json({ ok: false, msg: 'Error interno en el servidor' });
+    }
+};
 
 //Informacion técnica de valor agronómico del suelo (topografía, textura...)
 const getInfoSuelo = async (req, res) => {
@@ -484,18 +340,16 @@ const chatAsistente = async (req, res) => {
 
 const obtenerHistoricoProxy = async (req, res) => {
     try {
-        // 1. Recibimos lat y lon desde tu frontend
+        // Recibimos lat y lon desde frontend
         const { lat, lon } = req.query;
 
         // Validación básica
         if (!lat || !lon) {
-            return res.status(400).json({ 
-                ok: false, 
-                mensaje: "Faltan las coordenadas (lat, lon)" 
+            return res.status(400).json({
+                ok: false,
+                mensaje: "Faltan las coordenadas (lat, lon)"
             });
         }
-
-
 
         const respuestaExterna = await fetch(`https://cultitech-5years.onrender.com/5years_history?lat=${lat}&lon=${lon}`);
 
@@ -505,8 +359,6 @@ const obtenerHistoricoProxy = async (req, res) => {
 
         const datosExternos = await respuestaExterna.json();
 
-
-
         return res.status(200).json({
             ok: true,
             data: datosExternos
@@ -514,24 +366,18 @@ const obtenerHistoricoProxy = async (req, res) => {
 
     } catch (error) {
         console.error(" [PROXY ERROR]:", error.message);
-        
+
         return res.status(500).json({
             ok: false,
             mensaje: "Error al conectar con el servidor de histórico",
-            data: [] 
+            data: []
         });
     }
 };
 
 
 module.exports = {
-    getTemperatura,
-    getHumedadRelativa,
-    getHumedadSuelo,
-    getPrecipitacion,
-    getVientoVelocidad,
-    getVientoDireccion,
-    getEvapotranspiracion,
+    getAllMediciones,
     getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
