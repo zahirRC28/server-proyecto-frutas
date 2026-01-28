@@ -10,7 +10,7 @@ const getAllMediciones = async (req, res) => {
         const { variable } = req.params; // Puede ser 'temperatura', 'humedad'... o 'general'
         const { parcela_id, lat, lon } = req.body;
 
-        // 1. Validación básica de parámetros del body (igual que en plagas)
+        // 1. Validación básica de parámetros del body (igul que en plagas)
         if (!lat || !lon) {
             return res.status(400).json({
                 ok: false,
