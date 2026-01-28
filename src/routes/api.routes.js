@@ -7,7 +7,6 @@ const { verificarRol } = require('../middlewares/verificarRol');
 const upload = require('../middlewares/upload');
 const {
     getAllMediciones,
-    getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
     getAlertaMeteorologica,
@@ -19,7 +18,6 @@ const {
 } = require('../controllers/api.controller')
 
 router.post('/mediciones/:variable', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAllMediciones);
-router.post('/historico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getHistoricoPorFechas);
 router.get('/alerta-plagas', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAlertaPlagas);
 router.get('/analisis-climatico', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAnalisisClimatico);
 router.post('/alerta-meteo', [verificarRol(['Asesor', 'Productor', 'Manager', 'Administrador'])], getAlertaMeteorologica);

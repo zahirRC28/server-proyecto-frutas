@@ -45,36 +45,6 @@ const getAllMediciones = async (req, res) => {
     }
 };
 
-// Obtener histórico = conjunto de datos entre 2 fechas
-const getHistoricoPorFechas = async (req, res) => {
-    try {
-        const { parcela_id, lat, lon, inicio, fin } = req.body;
-
-        const datos = {
-            "parcela_id": parcela_id,
-            "lat": lat,
-            "lon": lon,
-            "inicio": inicio,
-            "fin": fin,
-            "variables": ["temperatura", "precipitacion", "humedad_suelo", "evapotranspiracion"]
-        };
-
-        const info = await conectar(`http://34.201.98.55/cargar_historico`, 'POST', datos);
-
-        return res.status(200).json({
-            ok: true,
-            msg: 'Histórico de datos obtenido correctamente',
-            data: info.historico // Esto ya trae el array con todos los datos mezclados 
-        });
-
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({
-            ok: false,
-            msg: "Error interno del servidor"
-        });
-    }
-};
 
 const getAlertaPlagas = async (req, res) => {
     console.log(req.body);
@@ -115,14 +85,15 @@ const getAnalisisClimatico = async (req, res) => {
         // Obtener los parámetros de la URL
         // lat y lon son obligatorios, days es opcional (7 por defecto) 
         const { lat, lon, days } = req.query;
-
+        
         if (!lat || !lon) {
             return res.status(400).json({
                 ok: false,
                 msg: 'Faltan parámetros lat o lon'
             });
         }
-
+        
+        console.log(lat, lon, days)
         // Construir la URL
         const url = `http://34.201.98.55/consultar_datos?lat=${lat}&lon=${lon}&days=${days || 7}`;
 
@@ -376,7 +347,6 @@ const obtenerHistoricoProxy = async (req, res) => {
 
 module.exports = {
     getAllMediciones,
-    getHistoricoPorFechas,
     getAlertaPlagas,
     getAnalisisClimatico,
     getAlertaMeteorologica,
