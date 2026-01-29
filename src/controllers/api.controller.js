@@ -2,7 +2,7 @@ const conectar = require("../helpers/fetch");
 const FormData = require('form-data');
 const fs = require('fs');
 const { buscarUserByid } = require('../models/user.model');
-URL_BASE_API_METEO = 'http://34.201.98.55/'
+URL_BASE_API_METEO = 'http://18.194.33.82:5000/monitor'
 
 //obtener mediciones en tiempo real
 const getAllMediciones = async (req, res) => {
@@ -151,6 +151,8 @@ const getAnalisisClimatico = async (req, res) => {
 
 
 const getAlertaMeteorologica = async (req, res) => {
+
+    console.log(req.body)
     try {
         // La docu pide: lat, lon, id, cultivo
         const { lat, lon, id, cultivo } = req.body;
@@ -165,7 +167,7 @@ const getAlertaMeteorologica = async (req, res) => {
         const datos = { lat, lon, id, cultivo };
 
         // Hacemos el POST
-        const info = await conectar(`http://18.184.142.242/monitor`, 'POST', datos);
+        const info = await conectar(`http://18.194.33.82:5000/monitor`, 'POST', datos);
 
         return res.status(200).json({
             ok: true,
